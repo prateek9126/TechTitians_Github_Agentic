@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediScan AI | Clinical Documentation & Follow-up Agent</title>
+
+    <!-- Standard MediScan Design System -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animation.css">
+    <link rel="stylesheet" href="css/clinical-agent.css">
+    <link rel="icon" href="images/favicon.jpg">
+</head>
+
+<body>
+
+<!-- ================= BACKGROUND GLOW ================= -->
+<div class="bg-glow"></div>
+
+<!-- ================= NAVBAR ================= -->
+<nav>
+    <a href="index.html" class="logo">
+        <img src="images/logo.png" alt="MediScan Logo">
+        <h2>MediScan AI</h2>
+    </a>
+    <div class="menu">
+        <a href="index.html">Home</a>
+        <a href="report.html">Report</a>
+        <a href="clinical-agent.html" class="active">Clinical Agent</a>
+        <a href="doctor.html">Doctors</a>
+        <a href="appointment.html">Appointment</a>
+        <a href="emergency.html">Emergency</a>
+    </div>
+</nav>
+
+<!-- ================= MAIN AGENT CONTAINER ================= -->
+<main class="agent-container">
+
+    <!-- Header Banner -->
+    <section class="agent-header fade-up">
+        <h1>Autonomous Clinical Documentation & Follow-up Agent</h1>
+    </section>
+
+    <!-- Control Panel -->
+    <section class="control-card">
+        <h3><span>🎛️</span> Agent Control & Scenario Selection</h3>
+
+        <div class="controls-grid">
+            <div class="patient-picker">
+                <label for="patientSelect">Select Synthetic Demo Scenario:</label>
+                <select id="patientSelect" class="patient-select" onchange="onPatientSelectChanged(this.value)">
+                    <!-- Populated dynamically via /api/clinical-agent/patients -->
+                </select>
+            </div>
+
+            <div class="action-buttons">
+                <button id="btnRunAgent" class="btn-agent btn-primary" onclick="runClinicalAgent()">
+                    <span>⚡</span> Run Autonomous Pipeline
+                </button>
+                <button id="btnAdapt" class="btn-agent btn-adapt" onclick="triggerAdaptation()" style="display: none;">
+                    <span>🔄</span> Simulate Mid-Session Lab Update
+                </button>
+                <button id="btnReset" class="btn-agent btn-reset" onclick="resetPatientState()">
+                    <span>↺</span> Reset Patient State
+                </button>
+            </div>
+        </div>
+
+        <div class="simulation-toggle" id="simulationToggleBox" style="display: none;">
+            <input type="checkbox" id="simulateFailureCheck">
+            <label for="simulateFailureCheck">Simulate Tool Failure (LIS 504 Timeout) to demonstrate autonomous 1-retry and safety escalation fallback</label>
+        </div>
+
+        <div class="patient-meta-banner" id="scenarioMetaBanner">
+            <div>
+                <div class="patient-meta-title" id="scenarioTitle">Loading Scenario...</div>
+                <div id="scenarioDescription">Please wait while the synthetic patient repository loads.</div>
+                <div style="margin-top: 6px; font-size: 13px; color: #b91c1c;">
+                    <strong>Deliberate Contradiction:</strong> <span id="contradictionDetail">None</span>
+                </div>
+            </div>
+            <div class="patient-meta-details" id="patientMetaDetails">
+                Loading metadata...
+            </div>
+        </div>
+
+        <!-- ================= CUSTOM PATIENT FORM CONTAINER ================= -->
+        <div id="customPatientContainer" class="card-section custom-patient-box" style="display: none; margin-top: 18px;">
+            <div class="custom-patient-header">
+                <h3><span>✍️</span> Custom Patient Manual EHR Entry</h3>
+                <p style="font-size: 13.5px; color: #64748b; margin-top: 4px;">
+                    Enter patient consultation dialogue, active prescriptions, allergies, and lab results. The autonomous pipeline will perform real multi-source diffing, tool resolution, and safety validation.
+                </p>
+            </div>
+
+            <div class="custom-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+                <div class="form-group">
+                    <label for="customPatientName"><strong>Patient Name *</strong></label>
+                    <input type="text" id="customPatientName" class="form-control" placeholder="e.g. Eleanor Vance" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+                <div class="form-group">
+                    <label for="customPatientAge"><strong>Age *</strong></label>
+                    <input type="number" id="customPatientAge" class="form-control" placeholder="e.g. 58" min="1" max="120" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+                <div class="form-group">
+                    <label for="customPatientGender"><strong>Gender *</strong></label>
+                    <select id="customPatientGender" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <option value="Female">Female</option>
+                        <option value="Male">Male</option>
+                        <option value="Non-Binary">Non-Binary</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Consultation Transcript -->
+            <div class="form-group" style="margin-top: 16px;">
+                <label for="customTranscript"><strong>Consultation Transcript *</strong> <small style="color: #64748b;">(Doctor-Patient Dialogue)</small></label>
+                <textarea id="customTranscript" class="form-control" rows="5" placeholder="Doctor: Good morning, how have you been feeling since we last spoke?&#10;Patient: I've had severe right knee pain, so I started taking OTC Ibuprofen 400mg three times daily. But my blood pressure has been creeping up..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 13.5px;"></textarea>
+            </div>
+
+            <!-- Current Medications (Repeatable) -->
+            <div class="form-group" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label><strong>Current Medications *</strong> <small style="color: #64748b;">(EHR Prescriptions)</small></label>
+                    <button type="button" class="btn-agent btn-secondary" onclick="addCustomMedicationRow()" style="padding: 4px 10px; font-size: 12.5px;">+ Add Medication</button>
+                </div>
+                <div id="customMedicationsList">
+                    <!-- Dynamic medication rows -->
+                </div>
+            </div>
+
+            <!-- Allergies (Repeatable) -->
+            <div class="form-group" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label><strong>Documented Allergies</strong></label>
+                    <button type="button" class="btn-agent btn-secondary" onclick="addCustomAllergyRow()" style="padding: 4px 10px; font-size: 12.5px;">+ Add Allergy</button>
+                </div>
+                <div id="customAllergiesList">
+                    <!-- Dynamic allergy rows -->
+                </div>
+            </div>
+
+            <!-- Lab Results: Manual Rows + PDF/Image Upload -->
+            <div class="form-group" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label><strong>Diagnostic Lab Results</strong></label>
+                    <button type="button" class="btn-agent btn-secondary" onclick="addCustomLabRow()" style="padding: 4px 10px; font-size: 12.5px;">+ Add Lab Row</button>
+                </div>
+
+                <!-- Upload Lab File Box -->
+                <div class="lab-upload-banner" style="background: #f8fafc; border: 1px dashed #94a3b8; border-radius: 8px; padding: 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <strong>📄 Upload Lab Report (PDF / Image)</strong>
+                        <div style="font-size: 12.5px; color: #64748b;">Automatically extract diagnostic lab markers directly into the rows below:</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="file" id="customLabFileInput" accept=".pdf,.png,.jpg,.jpeg" style="font-size: 12.5px;" onchange="handleCustomLabUpload(this)">
+                        <span id="labUploadSpinner" style="display: none;" class="agent-spinner"></span>
+                    </div>
+                </div>
+
+                <div id="customLabsList">
+                    <!-- Dynamic lab rows -->
+                </div>
+            </div>
+
+            <!-- Previous Notes -->
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="customPreviousNotes"><strong>Previous Clinical Notes</strong> <small style="color: #64748b;">(Optional EHR history)</small></label>
+                <textarea id="customPreviousNotes" class="form-control" rows="3" placeholder="e.g. Prior visit 3 months ago noted stage 1 essential hypertension and mild osteoarthritis." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 13.5px;"></textarea>
+            </div>
+
+            <!-- Validation Error Alert Container -->
+            <div id="customFormError" style="display: none; margin-top: 14px; padding: 10px 14px; background: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; border-radius: 6px; font-size: 13.5px;">
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= PRE-RUN INFORMATION BANNER ================= -->
+    <section id="preRunBanner" class="card-section pre-run-card">
+        <div class="pre-run-icon">🔬</div>
+        <h4>Autonomous Clinical Documentation Pipeline Ready</h4>
+        <p>
+            Select a synthetic patient scenario above and click <strong>"Run Autonomous Pipeline"</strong>.
+            The agent will ingest multiple disparate sources, reconcile clinical contradictions, resolve diagnostic gaps, and generate guardrail-verified documentation.
+        </p>
+    </section>
+
+    <!-- ================= RESULTS & VIEW TOGGLE SECTION ================= -->
+    <section id="resultsSection" class="results-section" style="display: none;">
+        <!-- View Toggle Control -->
+        <div class="view-toggle-container">
+            <div class="view-toggle-header">
+                <div class="view-toggle-pills" role="tablist" aria-label="Clinical Agent View Selection">
+                    <button id="togglePatientView" class="view-toggle-btn active" onclick="switchView('PATIENT')" role="tab" aria-selected="true">
+                        <span class="toggle-btn-icon">👤</span>
+                        <span class="toggle-btn-text">Patient View</span>
+                    </button>
+                    <button id="toggleDoctorView" class="view-toggle-btn" onclick="switchView('DOCTOR')" role="tab" aria-selected="false">
+                        <span class="toggle-btn-icon">🩺</span>
+                        <span class="toggle-btn-text">Doctor / Technical View</span>
+                    </button>
+                </div>
+                <div class="view-toggle-note">
+                    <span class="info-icon">ℹ️</span> Patient View shows a simple summary. Doctor View shows the full technical audit trail.
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Mount for Stepper (Rendered ONLY in Doctor/Technical View) -->
+        <div id="stepperMount"></div>
+
+        <!-- Dynamic Mount for Patient View (Rendered ONLY in Patient View) -->
+        <div id="patientViewMount"></div>
+
+        <!-- Dynamic Mount for Doctor / Technical View (Rendered ONLY in Doctor/Technical View) -->
+        <div id="doctorViewMount"></div>
+    </section>
+
+    <!-- ================= DOCTOR VIEW HTML TEMPLATES ================= -->
+    <!-- Template for 7-Step Stepper (Cloned into #stepperMount ONLY when Doctor View is active) -->
+    <template id="stepperTemplate">
+        <section class="pipeline-stepper">
+            <div class="stepper-header">
+                <h3>Pipeline Execution Architecture (7 Autonomous Steps)</h3>
+                <span id="pipelineStatusBadge" class="pipeline-status-badge status-idle">Pipeline Ready</span>
+            </div>
+
+            <div class="steps-list">
+                <div class="step-item" id="step-1">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Ingest</div>
+                    <div class="step-sub">PatientRecordLookup</div>
+                </div>
+                <div class="step-item" id="step-2">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Reconcile</div>
+                    <div class="step-sub">Multi-Source Diff</div>
+                </div>
+                <div class="step-item" id="step-3">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Identify Gaps</div>
+                    <div class="step-sub">Missing Facts</div>
+                </div>
+                <div class="step-item" id="step-4">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Retrieve</div>
+                    <div class="step-sub">Autonomous Tools</div>
+                </div>
+                <div class="step-item" id="step-5">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Draft</div>
+                    <div class="step-sub">Guardrail Synthesis</div>
+                </div>
+                <div class="step-item" id="step-6">
+                    <div class="step-number">6</div>
+                    <div class="step-title">Validate</div>
+                    <div class="step-sub">Deterministic Rules</div>
+                </div>
+                <div class="step-item" id="step-7">
+                    <div class="step-number">7</div>
+                    <div class="step-title">Escalate</div>
+                    <div class="step-sub">Clinician Sign-off</div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <!-- Template for Doctor View Tabs & Panes (Cloned into #doctorViewMount ONLY when Doctor View is active) -->
+    <template id="doctorViewTemplate">
+        <!-- Navigation Tabs -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="tab-overview">📄 Baseline Sources</button>
+            <button class="tab-btn" data-tab="tab-conflicts">⚖️ Reconciled Conflicts & Gaps</button>
+            <button class="tab-btn" data-tab="tab-tools">🛠️ Tool Audit Log</button>
+            <button class="tab-btn" data-tab="tab-validation">🛡️ Rule-Based Validation</button>
+            <button class="tab-btn" data-tab="tab-record">📋 Verified Follow-up Note & Actions</button>
+            <button class="tab-btn" id="tabBtnAdaptation" style="display:none;" data-tab="tab-adaptation">⚡ Mid-Session Adaptation Log</button>
+        </div>
+
+        <!-- TAB 1: Baseline Sources -->
+        <div class="tab-pane active" id="tab-overview">
+            <div class="card-section">
+                <h4><span>💬</span> Consultation Transcript (Free Text Input)</h4>
+                <div class="transcript-text" id="sourceTranscript">Select a patient above to view raw transcript.</div>
+            </div>
+
+            <div class="sources-grid">
+                <div class="source-box">
+                    <h5>EHR Active Medications <span class="source-badge">EHR Source</span></h5>
+                    <ul class="item-list" id="sourceMeds">
+                        <li>Loading medications...</li>
+                    </ul>
+                </div>
+
+                <div class="source-box">
+                    <h5>EHR Allergy Documentation <span class="source-badge">Allergy Banner</span></h5>
+                    <ul class="item-list" id="sourceAllergies">
+                        <li>Loading allergies...</li>
+                    </ul>
+                </div>
+
+                <div class="source-box">
+                    <h5>Historical Clinical Notes <span class="source-badge">EHR History</span></h5>
+                    <ul class="item-list" id="sourceNotes">
+                        <li>Loading clinical notes...</li>
+                    </ul>
+                </div>
+
+                <div class="source-box">
+                    <h5>Laboratory Diagnostic Panels <span class="source-badge">LIS Interface</span></h5>
+                    <ul class="item-list" id="sourceLabs">
+                        <li>Loading laboratory data...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Reconciled Conflicts & Gaps -->
+        <div class="tab-pane" id="tab-conflicts">
+            <div class="card-section">
+                <h4><span>⚖️</span> Reconciled Multi-Source Contradictions</h4>
+                <p style="font-size: 13.5px; color: #64748b; margin-bottom: 20px;">
+                    The diff engine compares facts across Consultation Transcript, EHR Medication lists, Allergy documentation, and Historical ED notes.
+                    High-severity contradictions trigger autonomous tool investigation and safety escalations.
+                </p>
+                <div id="conflictsContainer">
+                    <p style="color: #64748b;">Run the autonomous pipeline above to calculate multi-source diffs.</p>
+                </div>
+            </div>
+
+            <div class="card-section">
+                <h4><span>🔍</span> Identified Clinical Gaps & Incomplete Facts</h4>
+                <div id="gapsContainer">
+                    <p style="color: #64748b;">Run the autonomous pipeline above to view identified gaps.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Tool Audit Log -->
+        <div class="tab-pane" id="tab-tools">
+            <div class="card-section">
+                <h4><span>🛠️</span> Transparent Tool / Environment Interaction Audit Log</h4>
+                <p style="font-size: 13.5px; color: #64748b; margin-bottom: 20px;">
+                    Every tool invocation is tracked as an individual, auditable event with inputs, outputs, timestamps, and latencies. No black-box hidden prompts.
+                </p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Tool Name</th>
+                            <th style="width: 25%;">Autonomous Call Reason</th>
+                            <th style="width: 35%;">Result / Citable Output Summary</th>
+                            <th style="width: 10%;">Duration</th>
+                            <th style="width: 10%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="toolLogTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #64748b;">Click "Run Autonomous Pipeline" to view real-time tool invocations.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: Rule-Based Validation -->
+        <div class="tab-pane" id="tab-validation">
+            <div class="card-section">
+                <h4><span>🛡️</span> Automated Deterministic Validation Engine (RecordValidationService)</h4>
+                <p style="font-size: 13.5px; color: #64748b; margin-bottom: 20px;">
+                    Rigorous non-LLM rule checks enforcing clinical documentation standards, physiological bounds, completeness, zero un-escalated high conflicts, and negative guardrail compliance.
+                </p>
+
+                <div class="rules-checklist" id="validationRulesContainer">
+                    <p style="color: #64748b;">Run the autonomous pipeline above to execute validation rules.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: Verified Follow-up Note & Actions -->
+        <div class="tab-pane" id="tab-record">
+            <div class="clinical-note-paper">
+                <div class="note-disclaimer-banner" id="noteDisclaimer">
+                    Draft for clinician review — not a diagnosis. Synthetic/deidentified data only.
+                </div>
+
+                <div class="note-meta-bar">
+                    <div>Patient: <strong id="notePatientHeader">--</strong></div>
+                    <div>Encounter Date: <strong id="noteDate">--</strong></div>
+                    <div>Status: <span class="badge-tag badge-resolved">VERIFIED CLINICAL DRAFT</span></div>
+                </div>
+
+                <div id="noteAllergyAlerts"></div>
+
+                <div class="note-section">
+                    <div class="note-section-title">Chief Complaint</div>
+                    <div class="note-section-body" id="noteChiefComplaint">Run pipeline to generate documentation.</div>
+                </div>
+
+                <div class="note-section">
+                    <div class="note-section-title">History of Present Illness (HPI)</div>
+                    <div class="note-section-body" id="noteHPI">--</div>
+                </div>
+
+                <div class="note-section">
+                    <div class="note-section-title">Objective Findings & Vitals Summary</div>
+                    <div class="note-section-body" id="noteObjectives">--</div>
+                </div>
+
+                <div class="note-section">
+                    <div class="note-section-title">Reconciled Medication Profile</div>
+                    <ul class="reconciled-med-list" id="noteReconciledMeds">
+                        <li>--</li>
+                    </ul>
+                </div>
+
+                <div class="note-section">
+                    <div class="note-section-title">Provisional Clinical Assessment (Guardrail Grounded)</div>
+                    <div class="note-section-body" id="noteAssessment">--</div>
+                </div>
+
+                <div class="note-section">
+                    <div class="note-section-title">Proposed Follow-up Plan</div>
+                    <div class="note-section-body" id="notePlan" style="white-space: pre-wrap;">--</div>
+                </div>
+
+                <div class="note-section" style="margin-top: 30px;">
+                    <div class="note-section-title">Prioritized Action Items for Interdisciplinary Care Team</div>
+                    <table class="action-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Assigned Role</th>
+                                <th style="width: 12%;">Priority</th>
+                                <th style="width: 48%;">Action Item Description</th>
+                                <th style="width: 15%;">Category</th>
+                                <th style="width: 10%;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="actionTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #64748b;">No action items drafted yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: Mid-Session Adaptation Log -->
+        <div class="tab-pane" id="tab-adaptation">
+            <div class="adaptation-card">
+                <h4><span>⚡</span> Incremental Mid-Session Adaptation Log</h4>
+                <p style="font-size: 13.5px; color: #78350f;">
+                    Demonstrates dynamic pipeline re-evaluation when a new clinical source arrives mid-session (e.g. STAT CMP lab posts with acute eGFR decline).
+                    The agent detects the change and re-evaluates ONLY the affected clinical fields without restarting from scratch.
+                </p>
+
+                <div style="margin: 16px 0; font-size: 14px;">
+                    <strong>Trigger Event:</strong> <span id="adaptTrigger">--</span><br>
+                    <strong>Source Interface:</strong> <span id="adaptInterface">--</span><br>
+                    <strong>Timestamp:</strong> <span id="adaptTimestamp">--</span><br>
+                    <strong>Targeted Fields:</strong>
+                    <ul id="adaptFieldsList" style="margin-left: 20px; margin-top: 4px;"></ul>
+                </div>
+
+                <div class="adaptation-grid">
+                    <div class="adapt-box before">
+                        <h6>Baseline State</h6>
+                        <p id="adaptPriorState">--</p>
+                    </div>
+                    <div class="adapt-box after">
+                        <h6>Adapted State</h6>
+                        <p id="adaptNewState">--</p>
+                    </div>
+                </div>
+
+                <div style="font-size: 13.5px; color: #92400e; margin-top: 12px;">
+                    <strong>Targeted Adaptation Rationale:</strong> <span id="adaptRationale">--</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+    <div class="footer-container">
+        <div class="footer-box">
+            <h2>MediScan AI</h2>
+            <p>AI-powered healthcare, simplified.</p>
+        </div>
+
+        <div class="footer-box">
+            <h3>Contact</h3>
+            <p>support@mediscan.ai</p>
+            <p>+91 XXXXX XXXXX</p>
+            <p>Bhubaneswar, Odisha</p>
+        </div>
+
+        <div class="footer-box">
+            <h3>Team</h3>
+            <p>Nikita — +91 98765-00001</p>
+            <p>Priyanshi Sahoo — +91 98765-00002</p>
+            <p>Kumar Piyush — +91 98765-00003</p>
+            <p>Priyanshu Kumar Singh — +91 98765-00004</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <p class="copyright">
+        © 2026 MediScan AI. All rights reserved.
+    </p>
+</footer>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="js/clinical-agent.js"></script>
+
+</body>
+</html>

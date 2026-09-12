@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Call Support | MediScan AI</title>
+
+    <!-- Standard MediScan Design System -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animation.css">
+    <link rel="icon" href="images/favicon.jpg">
+
+    <style>
+        body {
+            background: #f4f9ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .call-page-container {
+            max-width: 800px;
+            margin: 120px auto 60px;
+            padding: 0 20px;
+            flex: 1;
+            width: 100%;
+        }
+
+        .call-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 15px 40px rgba(13, 110, 253, 0.08);
+            border: 1px solid #e0e7ff;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .call-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #0d6efd);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 18px;
+            background: #fee2e2;
+            color: #b91c1c;
+            border-radius: 50px;
+            font-size: 13.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            border: 1px solid #fca5a5;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .call-icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+            display: inline-block;
+            animation: ring 2s infinite ease-in-out;
+        }
+
+        @keyframes ring {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30% { transform: rotate(-14deg); }
+            20%, 40% { transform: rotate(14deg); }
+            50% { transform: rotate(0deg); }
+        }
+
+        .facility-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .facility-address {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 28px;
+        }
+
+        .phone-display-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+            border: 2px dashed #0d6efd;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .phone-display-number {
+            font-size: 42px;
+            font-weight: 800;
+            color: #0d6efd;
+            letter-spacing: 1.5px;
+            font-family: 'Poppins', monospace, sans-serif;
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+
+        .phone-tag {
+            font-size: 13.5px;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 24px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+
+        .btn-call-direct {
+            background: #0d6efd;
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(13, 110, 253, 0.35);
+        }
+
+        .btn-call-direct:hover {
+            background: #0a58ca;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(13, 110, 253, 0.45);
+        }
+
+        .btn-copy-num {
+            background: #f1f5f9;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-copy-num:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-directions {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .btn-directions:hover {
+            background: #d1fae5;
+            transform: translateY(-2px);
+        }
+
+        .triage-guidelines {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 16px;
+            padding: 20px 24px;
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .triage-guidelines h4 {
+            color: #92400e;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .triage-guidelines ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #78350f;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .triage-guidelines li {
+            margin-bottom: 6px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #0d6efd;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .call-card {
+                padding: 26px 18px;
+            }
+            .phone-display-number {
+                font-size: 30px;
+            }
+            .facility-title {
+                font-size: 22px;
+            }
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= BACKGROUND GLOW ================= -->
+<div class="bg-glow"></div>
+
+<!-- ================= NAVBAR ================= -->
+<nav>
+    <a href="index.html" class="logo">
+        <img src="images/logo.png" alt="MediScan Logo">
+        <h2>MediScan AI</h2>
+    </a>
+    <div class="menu">
+        <a href="index.html">Home</a>
+        <a href="report.html">Report</a>
+        <a href="clinical-agent.html">Clinical Agent</a>
+        <a href="doctor.html">Doctors</a>
+        <a href="appointment.html">Appointment</a>
+        <a href="emergency.html" class="active">Emergency</a>
+    </div>
+</nav>
+
+<!-- ================= MAIN CALL SCREEN ================= -->
+<main class="call-page-container fade-up">
+    <div class="call-card">
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            <span>24/7 Emergency Line Connected</span>
+        </div>
+
+        <div class="call-icon">📞</div>
+
+        <h1 id="facilityName" class="facility-title">AIIMS Emergency & Trauma Centre</h1>
+        <p id="facilityAddress" class="facility-address">📍 Sijua, Patrapada, Bhubaneswar | 2.4 km away</p>
+
+        <div class="phone-display-box">
+            <div id="displayNumber" class="phone-display-number">0674-2476789</div>
+            <div class="phone-tag">Verified Direct Emergency Department Helpline</div>
+        </div>
+
+        <div class="action-grid">
+            <a id="btnDirectDial" href="tel:06742476789" class="btn-action btn-call-direct">
+                <span>📞</span> Call via Dialer
+            </a>
+
+            <button id="btnCopyPhone" class="btn-action btn-copy-num" onclick="copyNumber()">
+                <span>📋</span> Copy Number
+            </button>
+
+            <a id="btnMapsDirections" href="https://maps.google.com/?q=AIIMS+Bhubaneswar" target="_blank" class="btn-action btn-directions">
+                <span>🗺️</span> Get Directions
+            </a>
+        </div>
+
+        <div class="triage-guidelines">
+            <h4><span>📋</span> Instructions When Calling the ER:</h4>
+            <ul>
+                <li><strong>State the Emergency:</strong> Briefly explain if the patient is experiencing chest pain, stroke symptoms, unconsciousness, or trauma.</li>
+                <li><strong>Provide Location:</strong> Give exact landmark and address so the triage desk can ready the trauma bay or dispatch an ambulance.</li>
+                <li><strong>Confirm Transport:</strong> State whether you are self-transporting the patient or if you require an ambulance with oxygen/ICU support.</li>
+            </ul>
+        </div>
+
+        <div>
+            <a href="emergency.html" class="back-link">← Return to Emergency Support Hub</a>
+        </div>
+    </div>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+    <div class="footer-container">
+        <div class="footer-box">
+            <h2>MediScan AI</h2>
+            <p>AI-powered healthcare, simplified.</p>
+        </div>
+        <div class="footer-box">
+            <h3>Emergency Lines</h3>
+            <p>Ambulance: 108 / 102</p>
+            <p>National Emergency: 112</p>
+            <p>Health Helpline: 104</p>
+        </div>
+        <div class="footer-box">
+            <h3>Support</h3>
+            <p>support@mediscan.ai</p>
+            <p>24×7 Rapid Emergency Assistance</p>
+        </div>
+    </div>
+    <hr>
+    <p class="copyright">
+        © 2026 MediScan AI. All rights reserved.
+    </p>
+</footer>
+
+<script>
+    // Parse query parameters
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name") || "AIIMS Emergency & Trauma Centre";
+    const phone = params.get("phone") || "06742476789";
+    const display = params.get("display") || phone;
+    const address = params.get("address") || "Sijua, Patrapada, Bhubaneswar";
+    const map = params.get("map") || `https://maps.google.com/?q=${encodeURIComponent(name + " " + address)}`;
+
+    // Populate page content
+    document.getElementById("facilityName").textContent = name;
+    document.getElementById("facilityAddress").textContent = address.startsWith("📍") ? address : `📍 ${address}`;
+    document.getElementById("displayNumber").textContent = display;
+    document.title = `${name} (Emergency) | MediScan AI`;
+
+    // Configure action buttons
+    const dialBtn = document.getElementById("btnDirectDial");
+    dialBtn.href = "tel:" + phone;
+
+    const mapBtn = document.getElementById("btnMapsDirections");
+    mapBtn.href = map;
+
+    // Automatic dial attempt on mobile devices
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && phone) {
+        window.location.href = "tel:" + phone;
+    }
+
+    // Copy to clipboard helper
+    function copyNumber() {
+        const textToCopy = phone;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showCopiedFeedback();
+            }).catch(() => {
+                fallbackCopy(textToCopy);
+            });
+        } else {
+            fallbackCopy(textToCopy);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showCopiedFeedback();
+        } catch (err) {
+            console.error("Fallback copy failed:", err);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function showCopiedFeedback() {
+        const btn = document.getElementById("btnCopyPhone");
+        btn.innerHTML = "<span>✅</span> Copied to Clipboard!";
+        btn.style.background = "#dcfce7";
+        btn.style.color = "#166534";
+        btn.style.borderColor = "#86efac";
+        setTimeout(() => {
+            btn.innerHTML = "<span>📋</span> Copy Number";
+            btn.style.background = "#f1f5f9";
+            btn.style.color = "#1e293b";
+            btn.style.borderColor = "#cbd5e1";
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MediScan AI | Appointment</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/appointment.css">
+<link rel="icon" href="images/favicon.jpg">
+
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="images/logo.png" alt="MediScan Logo">
+        <h2>MediScan AI</h2>
+    </a>
+    <div class="menu">
+        <a href="index.html">Home</a>
+        <a href="report.html">Report</a>
+        <a href="clinical-agent.html">Clinical Agent</a>
+        <a href="doctor.html">Doctors</a>
+        <a href="appointment.html" class="active">Appointment</a>
+        <a href="emergency.html">Emergency</a>
+    </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+
+<section class="appointment-hero">
+
+<h1>
+
+Book Doctor Appointment
+
+</h1>
+
+<p>
+
+Choose your doctor and schedule an appointment within seconds.
+
+</p>
+
+</section>
+
+<!-- ================= APPOINTMENT FORM ================= -->
+
+<section class="appointment-section">
+
+<div class="appointment-card">
+
+<h2>
+
+Patient Details
+
+</h2>
+
+<form id="appointmentForm">
+
+<label>
+
+Patient Name
+
+</label>
+
+<input
+type="text"
+id="name"
+required>
+
+<label>
+
+Age
+
+</label>
+
+<input
+type="number"
+id="age"
+required>
+
+<label>
+
+Gender
+
+</label>
+
+<select id="gender">
+
+<option>Male</option>
+
+<option>Female</option>
+
+<option>Other</option>
+
+</select>
+
+<label>
+
+Phone Number
+
+</label>
+
+<input
+type="tel"
+id="phone"
+required>
+
+<label>
+
+Email
+
+</label>
+
+<input
+type="email"
+id="email">
+
+<label>
+
+Problem / Symptoms
+
+</label>
+
+<textarea
+id="problem"
+rows="4">
+
+</textarea>
+<!-- ================= Doctor Information ================= -->
+
+<h2 class="form-title">
+
+Doctor Information
+
+</h2>
+
+<label>
+
+Doctor Name
+
+</label>
+
+<input
+type="text"
+id="doctorName"
+placeholder="Dr. Rahul Sharma"
+required>
+
+<label>
+
+Specialization
+
+</label>
+
+<select id="specialization">
+
+<option>General Physician</option>
+
+<option>Cardiologist</option>
+
+<option>Neurologist</option>
+
+<option>Dermatologist</option>
+
+<option>Orthopedic</option>
+
+<option>Pediatrician</option>
+
+<option>ENT Specialist</option>
+
+<option>Psychiatrist</option>
+
+<option>Gynecologist</option>
+
+</select>
+
+<label>
+
+Hospital
+
+</label>
+
+<input
+type="text"
+id="hospital"
+placeholder="AIIMS Bhubaneswar">
+
+<label>
+
+Consultation Type
+
+</label>
+
+<select id="consultation">
+
+<option>Offline</option>
+
+<option>Online</option>
+
+</select>
+
+<!-- ================= Appointment Details ================= -->
+
+<h2 class="form-title">
+
+Appointment Details
+
+</h2>
+
+<label>
+
+Appointment Date
+
+</label>
+
+<input
+type="date"
+id="date"
+required>
+
+<label>
+
+Preferred Time
+
+</label>
+
+<input
+type="time"
+id="time"
+required>
+
+<label>
+
+Upload Previous Report
+
+</label>
+
+<input
+type="file"
+id="report"
+accept=".pdf,.jpg,.jpeg,.png">
+
+<label>
+
+Additional Notes
+
+</label>
+
+<textarea
+id="notes"
+rows="4"
+placeholder="Any additional information for doctor...">
+
+</textarea>
+
+<!-- ================= Payment ================= -->
+
+<h2 class="form-title">
+
+Payment Method
+
+</h2>
+
+<div class="payment-options">
+
+<label>
+
+<input
+type="radio"
+name="payment"
+value="Cash"
+checked>
+
+Cash
+
+</label>
+
+<label>
+
+<input
+type="radio"
+name="payment"
+value="UPI">
+
+UPI
+
+</label>
+
+<label>
+
+<input
+type="radio"
+name="payment"
+value="Card">
+
+Card
+
+</label>
+
+</div>
+
+<div class="fee-box">
+
+<h3>
+
+Consultation Fee
+
+</h3>
+
+<h2>
+
+₹500
+
+</h2>
+
+</div>
+
+<button
+type="button"
+onclick="bookAppointment()">
+
+Book Appointment
+
+</button>
+
+</form>
+
+</div>
+
+</section>
+<!-- ================= APPOINTMENT SUCCESS ================= -->
+
+<section id="successSection" class="success-section" style="display:none;">
+
+<div class="success-card">
+
+<img src="images/success.png" alt="Success">
+
+<h2>
+
+Appointment Booked Successfully 🎉
+
+</h2>
+
+<p>
+
+Your appointment has been confirmed.
+
+</p>
+
+<hr>
+
+<table>
+
+<tr>
+
+<td><b>Appointment ID</b></td>
+
+<td id="appointmentId">
+
+MED000001
+
+</td>
+
+</tr>
+
+<tr>
+
+<td><b>Patient</b></td>
+
+<td id="successName">
+
+-
+
+</td>
+
+</tr>
+
+<tr>
+
+<td><b>Doctor</b></td>
+
+<td id="successDoctor">
+
+-
+
+</td>
+
+</tr>
+
+<tr>
+
+<td><b>Hospital</b></td>
+
+<td id="successHospital">
+
+-
+
+</td>
+
+</tr>
+
+<tr>
+
+<td><b>Date</b></td>
+
+<td id="successDate">
+
+-
+
+</td>
+
+</tr>
+
+<tr>
+
+<td><b>Time</b></td>
+
+<td id="successTime">
+
+-
+
+</td>
+
+</tr>
+
+<tr>
+
+<td><b>Consultation</b></td>
+
+<td id="successType">
+
+-
+
+</td>
+
+</tr>
+
+</table>
+
+<br>
+
+<button onclick="downloadSlip()">
+
+Download Appointment Slip
+
+</button>
+
+<button onclick="window.location='index.html'">
+
+Back to Home
+
+</button>
+
+</div>
+
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+    <div class="footer-container">
+        <div class="footer-box">
+            <h2>MediScan AI</h2>
+            <p>AI-powered healthcare, simplified.</p>
+        </div>
+
+        <div class="footer-box">
+            <h3>Contact</h3>
+            <p>support@mediscan.ai</p>
+            <p>+91 XXXXX XXXXX</p>
+            <p>Bhubaneswar, Odisha</p>
+        </div>
+
+        <div class="footer-box">
+            <h3>Team</h3>
+            <p>Nikita — +91 98765-00001</p>
+            <p>Priyanshi Sahoo — +91 98765-00002</p>
+            <p>Kumar Piyush — +91 98765-00003</p>
+            <p>Priyanshu Kumar Singh — +91 98765-00004</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <p class="copyright">
+        © 2026 MediScan AI. All rights reserved.
+    </p>
+</footer>
+
+<script src="js/appointment.js"></script>
+
+</body>
+
+</html>

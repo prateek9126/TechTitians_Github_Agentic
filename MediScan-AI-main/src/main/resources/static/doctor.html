@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Find Doctors | MediScan AI</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/doctor.css">
+    <link rel="icon" href="images/favicon.jpg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+
+    <nav>
+        <a href="index.html" class="logo">
+            <img src="images/logo.png" alt="MediScan Logo">
+            <h2>MediScan AI</h2>
+        </a>
+        <div class="menu">
+            <a href="index.html">Home</a>
+            <a href="report.html">Report</a>
+            <a href="clinical-agent.html">Clinical Agent</a>
+            <a href="doctor.html" class="active">Doctors</a>
+            <a href="appointment.html">Appointment</a>
+            <a href="emergency.html">Emergency</a>
+        </div>
+    </nav>
+
+    <!-- ================= HERO ================= -->
+
+    <section class="doctor-hero">
+
+        <div class="doctor-left">
+
+            <h1>Find the Best Doctors Near You</h1>
+
+            <p>
+
+                Search verified doctors according to your country,
+                state, city and specialization.
+
+            </p>
+
+            <button onclick="scrollToSearch()">
+
+                Find Doctors
+
+            </button>
+
+        </div>
+
+        <div class="doctor-right">
+
+            <img src="images/doctor-profile.webp" alt="Doctor">
+
+        </div>
+
+    </section>
+
+    <!-- ================= SEARCH ================= -->
+
+    <section class="doctor-search" id="searchSection">
+
+        <h2>Search Doctors</h2>
+
+        <div class="search-box">
+
+            <select id="country">
+
+                <option value="India">India</option>
+
+            </select>
+
+            <select id="state">
+
+                <option>Select State</option>
+
+            </select>
+
+            <select id="city">
+
+                <option>Select City</option>
+
+            </select>
+
+            <select id="specialization">
+
+                <option>All</option>
+
+                <option>General Physician</option>
+
+                <option>Cardiologist</option>
+
+                <option>Neurologist</option>
+
+                <option>Dermatologist</option>
+
+                <option>Orthopedic</option>
+
+                <option>Gynecologist</option>
+
+                <option>Pediatrician</option>
+
+                <option>ENT</option>
+
+                <option>Psychiatrist</option>
+
+                <option>Pulmonologist</option>
+
+                <option>Nephrologist</option>
+
+                <option>Oncologist</option>
+
+                <option>Dentist</option>
+
+            </select>
+
+            <button onclick="searchDoctors()">
+
+                Search
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- ================= LOCATION ================= -->
+
+    <section class="doctor-search">
+
+        <h2>Find Nearby Doctors</h2>
+
+        <button id="btnCurrentLocation" onclick="findNearbyDoctors()">
+
+            📍 Use Current Location
+
+        </button>
+
+    </section>
+
+    <!-- ================= AI DOCTOR ================= -->
+
+    <section class="ai-doctor">
+
+        <h2>AI Recommended Specialist</h2>
+
+        <div class="ai-card">
+
+            <img src="images/doctor-banner.jpg" alt="AI">
+
+            <h3 id="aiSpecialist">
+
+                Waiting for AI Report...
+
+            </h3>
+
+            <p>
+
+                After analyzing your medical report,
+                MediScan AI recommends the best doctor specialization.
+
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- ================= RESULT ================= -->
+
+    <section class="doctor-results" id="resultsSection">
+
+        <div class="results-header-container">
+            <h2 id="resultsHeading">Verified Doctors & Hospitals</h2>
+            <p id="resultsSubheading" class="results-subheading">
+                Explore accredited hospitals and specialist doctors organized by medical field and department
+            </p>
+
+            <!-- View Switcher Controls -->
+            <div class="view-controls">
+                <div class="view-mode-toggle">
+                    <button id="btnViewHospital" class="toggle-btn active" onclick="switchView('hospital')">
+                        <span class="icon">🏥</span> View Under Hospital
+                    </button>
+                    <button id="btnViewGrid" class="toggle-btn" onclick="switchView('grid')">
+                        <span class="icon">👨‍⚕️</span> View All Doctors
+                    </button>
+                </div>
+                <div class="results-counter" id="resultsCounter">
+                    <!-- Populated dynamically by JS -->
+                </div>
+            </div>
+
+            <!-- Quick Specialization / Field Filter Bar -->
+            <div class="field-filter-bar" id="fieldFilterBar">
+                <span class="filter-title">Filter by Field / Specialization:</span>
+                <div class="pill-carousel" id="specializationPills">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div id="doctorList">
+
+        </div>
+
+    </section>
+
+    <!-- ================= WHY CHOOSE ================= -->
+
+    <section class="why-doctor">
+
+        <h2>Why Choose MediScan AI?</h2>
+
+        <div class="why-container">
+
+            <div class="why-card">
+
+                <img src="images/verified-doctor.webp" alt="">
+
+                <h3>Verified Doctors</h3>
+
+                <p>
+
+                    Experienced and trusted specialists.
+
+                </p>
+
+            </div>
+
+            <div class="why-card">
+
+                <img src="images/appointment-booking.jpg" alt="">
+
+                <h3>Easy Appointment</h3>
+
+                <p>
+
+                    Book appointments instantly.
+
+                </p>
+
+            </div>
+
+            <div class="why-card">
+
+                <img src="images/hospital-building.webp" alt="">
+
+                <h3>Top Hospitals</h3>
+
+                <p>
+
+                    Doctors from India's leading hospitals.
+
+                </p>
+
+            </div>
+
+            <div class="why-card">
+
+                <img src="images/medical-ai-dashboard.jpg" alt="">
+
+                <h3>AI Recommendation</h3>
+
+                <p>
+
+                    AI suggests the best specialist based on your report.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ================= STATS ================= -->
+
+    <section class="stats">
+
+        <div class="stat">
+
+            <h1>10K+</h1>
+
+            <p>Doctors</p>
+
+        </div>
+
+        <div class="stat">
+
+            <h1>500+</h1>
+
+            <p>Hospitals</p>
+
+        </div>
+
+        <div class="stat">
+
+            <h1>30+</h1>
+
+            <p>Specializations</p>
+
+        </div>
+
+        <div class="stat">
+
+            <h1>24×7</h1>
+
+            <p>Support</p>
+
+        </div>
+
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-box">
+                <h2>MediScan AI</h2>
+                <p>AI-powered healthcare, simplified.</p>
+            </div>
+
+            <div class="footer-box">
+                <h3>Contact</h3>
+                <p>support@mediscan.ai</p>
+                <p>+91 XXXXX XXXXX</p>
+                <p>Bhubaneswar, Odisha</p>
+            </div>
+
+            <div class="footer-box">
+                <h3>Team</h3>
+                <p>Nikita — +91 98765-00001</p>
+                <p>Priyanshi Sahoo — +91 98765-00002</p>
+                <p>Kumar Piyush — +91 98765-00003</p>
+                <p>Priyanshu Kumar Singh — +91 98765-00004</p>
+            </div>
+        </div>
+
+        <hr>
+
+        <p class="copyright">
+            © 2026 MediScan AI. All rights reserved.
+        </p>
+    </footer>
+
+    <script src="js/doctor.js"></script>
+
+</body>
+
+</html>

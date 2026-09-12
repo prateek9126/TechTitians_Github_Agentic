@@ -1,0 +1,102 @@
+[
+  {
+    "id": "GL-ADA-01",
+    "title": "Metformin Dosing & Renal Safety Thresholds (eGFR Cutoffs)",
+    "organization": "American Diabetes Association (ADA)",
+    "publicationYear": "2024",
+    "clinicalDomain": "ENDOCRINOLOGY_NEPHROLOGY",
+    "summary": "Guidelines on when Metformin dose must be reduced or discontinued based on eGFR.",
+    "citedText": "ADA Standards of Care: Metformin should be initiated if eGFR >= 45 mL/min/1.73m2. If eGFR declines to 30-44 mL/min/1.73m2, reduce maximum dose to 1000 mg/day with renal monitoring every 3 months. Metformin is strictly CONTRAINDICATED in patients with eGFR < 30 mL/min/1.73m2 due to high risk of life-threatening lactic acidosis; therapy must be discontinued immediately and alternative glycemic regimens instituted.",
+    "keywords": ["metformin", "egfr", "kidney", "renal", "lactic acidosis", "diabetes", "contraindicated", "creatinine"]
+  },
+  {
+    "id": "GL-ADA-02",
+    "title": "Management of Metformin Gastrointestinal Intolerance",
+    "organization": "American Diabetes Association (ADA)",
+    "publicationYear": "2024",
+    "clinicalDomain": "ENDOCRINOLOGY",
+    "summary": "Approach to handling gastrointestinal adverse effects (nausea, cramping, diarrhea) from Metformin.",
+    "citedText": "ADA Clinical Recommendations: Gastrointestinal symptoms occur in up to 25% of patients taking immediate-release Metformin. When patients self-discontinue due to cramping or nausea, clinicians should consider trial of extended-release (ER) Metformin with meals. If intolerance persists, switch to alternative glucose-lowering agents (SGLT2 inhibitors or GLP-1 receptor agonists if cardioprotective benefit indicated, or DPP-4 inhibitor) to prevent glycemic rebound.",
+    "keywords": ["metformin", "nausea", "cramping", "diarrhea", "gastrointestinal", "intolerance", "cessation", "sglt2", "glp1"]
+  },
+  {
+    "id": "GL-AAAAI-03",
+    "title": "Penicillin & Beta-Lactam Hypersensitivity Management and Cross-Reactivity",
+    "organization": "American Academy of Allergy, Asthma & Immunology (AAAAI)",
+    "publicationYear": "2023",
+    "clinicalDomain": "ALLERGY_IMMUNOLOGY",
+    "summary": "Protocols for managing documented IgE-mediated beta-lactam reactions vs conflicting NKDA records.",
+    "citedText": "AAAAI Practice Parameter: Any patient with documented historical immediate hypersensitivity (urticaria, angioedema, bronchospasm, anaphylaxis) to penicillins or aminopenicillins (Amoxicillin, Augmentin) must NOT receive beta-lactam antibiotics empirically. In situations where EHR allergy records indicate 'NKDA' while clinical notes document an anaphylactoid reaction, clinical documentation systems must prioritize the documented reaction and escalate to the clinician. Cephalosporins carry 1-3% cross-reactivity and require allergy evaluation prior to exposure.",
+    "keywords": ["penicillin", "amoxicillin", "augmentin", "allergy", "anaphylaxis", "urticaria", "nkda", "cross-reactivity", "beta-lactam"]
+  },
+  {
+    "id": "GL-ACC-04",
+    "title": "The 'Triple Whammy' Hemodynamic Nephrotoxicity (NSAID + ACEi/ARB + Diuretic)",
+    "organization": "American College of Cardiology / KDIGO",
+    "publicationYear": "2023",
+    "clinicalDomain": "CARDIOLOGY_NEPHROLOGY",
+    "summary": "High-risk drug interaction precipitating acute kidney injury and hyperkalemia.",
+    "citedText": "ACC/AHA & KDIGO Consensus: The combination of an NSAID (e.g., Ibuprofen, Naproxen), an ACE inhibitor or ARB (e.g., Lisinopril), and a diuretic (e.g., Spironolactone, Hydrochlorothiazide) significantly disrupts renal autoregulation. The NSAID constricts the afferent arteriole while the ACEi dilates the efferent arteriole, collapsing glomerular filtration pressure by up to 60% and causing Acute Kidney Injury (AKI) and hyperkalemia. Immediate cessation of NSAIDs is mandated.",
+    "keywords": ["nsaid", "ibuprofen", "lisinopril", "spironolactone", "triple whammy", "acute kidney injury", "potassium", "hyperkalemia", "renal failure"]
+  },
+  {
+    "id": "GL-KDIGO-05",
+    "title": "Management of Borderline and Acute Hyperkalemia in Renin-Angiotensin Therapy",
+    "organization": "Kidney Disease: Improving Global Outcomes (KDIGO)",
+    "publicationYear": "2024",
+    "clinicalDomain": "NEPHROLOGY",
+    "summary": "Thresholds and interventions for elevated potassium with ACE inhibitors and aldosterone antagonists.",
+    "citedText": "KDIGO Guidelines: In patients receiving Lisinopril and Spironolactone, a serum potassium between 5.1 and 5.5 mEq/L represents borderline hyperkalemia requiring urgent review. Clinicians must verify dietary potassium restriction, stop concurrent nephrotoxic agents (especially NSAIDs), evaluate hydration status, and schedule repeat Basic Metabolic Panel within 7-14 days.",
+    "keywords": ["potassium", "hyperkalemia", "spironolactone", "lisinopril", "bmp", "creatinine", "kidney"]
+  },
+  {
+    "id": "GL-GOLD-06",
+    "title": "Antibiotic Stewardship in Acute Bronchitis",
+    "organization": "Global Initiative for Chronic Obstructive Lung Disease / NICE",
+    "publicationYear": "2023",
+    "clinicalDomain": "PULMONOLOGY",
+    "summary": "Judicious use of antibiotics in uncomplicated acute bronchitis.",
+    "citedText": "NICE Clinical Guideline: More than 90% of acute bronchitis cases in outpatients are viral in etiology. Routine empiric antibiotic prescription is strongly discouraged unless high-risk comorbidities or marked focal consolidations on chest radiography are present. If bacterial infection is suspected in a patient with severe penicillin allergy, non-beta-lactam antibiotics (e.g., Doxycycline or Azithromycin) must be preferred.",
+    "keywords": ["bronchitis", "cough", "antibiotic", "augmentin", "fever", "respiratory", "pulmonology"]
+  },
+  {
+    "id": "GL-ACC-07",
+    "title": "NSAID-Induced Blood Pressure Destabilization",
+    "organization": "American College of Cardiology (ACC/AHA)",
+    "publicationYear": "2023",
+    "clinicalDomain": "CARDIOLOGY",
+    "summary": "Impact of OTC non-steroidal anti-inflammatory agents on systemic blood pressure control.",
+    "citedText": "ACC/AHA Hypertension Guidelines: Regular use of systemic NSAIDs inhibits renal prostaglandin E2 synthesis, leading to sodium and water retention, peripheral edema, and systemic vasoconstriction. NSAIDs can attenuate the blood pressure lowering effect of ACE inhibitors and diuretics by 5 to 10 mmHg systolic.",
+    "keywords": ["nsaid", "ibuprofen", "hypertension", "blood pressure", "edema", "retention", "lisinopril"]
+  },
+  {
+    "id": "GL-AAAAI-08",
+    "title": "Clinical EHR Allergy Reconciliation & Safety Escalation Protocols",
+    "organization": "AAAAI Clinical Informatics Committee",
+    "publicationYear": "2024",
+    "clinicalDomain": "SAFETY_INFORMATICS",
+    "summary": "Handling conflicting electronic health record allergy documentation.",
+    "citedText": "Informatics Safety Rule: Whenever an EHR field indicates 'No Known Allergies' but any historical clinician narrative describes a hypersensitivity reaction requiring emergency pharmacotherapy, automated clinical decision support systems MUST escalate to clinician review. Under no circumstances should an automated agent override an allergy warning without human verification.",
+    "keywords": ["allergy", "reconciliation", "safety", "escalation", "nkda", "ehr", "conflict", "guardrail"]
+  },
+  {
+    "id": "GL-ADA-09",
+    "title": "Glycemic Targets, Marked Hyperglycemia and Diagnostic Re-testing",
+    "organization": "American Diabetes Association (ADA)",
+    "publicationYear": "2024",
+    "clinicalDomain": "ENDOCRINOLOGY",
+    "summary": "Thresholds for marked hyperglycemia, HbA1c elevation, and prompt clinician re-evaluation.",
+    "citedText": "ADA Standards of Medical Care: A fasting plasma glucose >= 126 mg/dL or an HbA1c >= 6.5% confirms diabetes. Fasting glucose levels exceeding 200 mg/dL or HbA1c >= 10.0% represent severe uncontrolled hyperglycemia requiring immediate therapeutic escalation, lifestyle reinforcement, and urgent physician follow-up to prevent acute hyperosmolar or ketoacidotic complications.",
+    "keywords": ["glucose", "fasting glucose", "hba1c", "hyperglycemia", "diabetes", "glycemic", "uncontrolled", "endocrine"]
+  },
+  {
+    "id": "GL-CHEST-10",
+    "title": "Anticoagulation & Drug Interaction Safety (Warfarin & NSAIDs)",
+    "organization": "American College of Chest Physicians (CHEST)",
+    "publicationYear": "2023",
+    "clinicalDomain": "HEMATOLOGY",
+    "summary": "Major bleeding risks from concurrent systemic NSAID therapy and anticoagulants.",
+    "citedText": "CHEST Guidelines on Antithrombotic Therapy: Concurrent administration of systemic NSAIDs with vitamin K antagonists (Warfarin) or direct oral anticoagulants increases the risk of severe upper gastrointestinal bleeding 3- to 6-fold through synergistic platelet inhibition and gastric mucosal injury. Co-prescription is strongly discouraged; alternative analgesics (acetaminophen, topical therapies) are recommended.",
+    "keywords": ["warfarin", "nsaid", "bleeding", "anticoagulant", "ibuprofen", "interaction", "hematology"]
+  }
+]

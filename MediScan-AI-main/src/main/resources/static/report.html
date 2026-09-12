@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MediScan AI | Report Analysis</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/report.css">
+<link rel="stylesheet" href="css/animation.css">
+<link rel="icon" href="images/favicon.jpg">
+
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav>
+    <a href="index.html" class="logo">
+        <img src="images/logo.png" alt="MediScan Logo">
+        <h2>MediScan AI</h2>
+    </a>
+    <div class="menu">
+        <a href="index.html">Home</a>
+        <a href="report.html" class="active">Report</a>
+        <a href="clinical-agent.html">Clinical Agent</a>
+        <a href="doctor.html">Doctors</a>
+        <a href="appointment.html">Appointment</a>
+        <a href="emergency.html">Emergency</a>
+    </div>
+</nav>
+
+<section class="report-hero">
+
+<div class="report-left">
+
+<h1>AI Medical Report Analyzer</h1>
+
+<p>
+
+Upload your Blood Report, MRI, CT Scan or X-Ray.
+
+Our Artificial Intelligence analyzes the report and provides a complete medical summary.
+
+</p>
+
+<ul class="report-list">
+
+<li>✔ Blood Report Analysis</li>
+
+<li>✔ MRI Analysis</li>
+
+<li>✔ CT Scan Analysis</li>
+
+<li>✔ X-Ray Detection</li>
+
+<li>✔ Disease Prediction</li>
+
+<li>✔ Doctor Recommendation</li>
+
+</ul>
+
+</div>
+
+<div class="report-right">
+
+<div class="upload-card">
+
+<img src="images/report-upload.png" alt="Upload">
+
+<h2>Upload Medical Report</h2>
+
+<p>
+
+Supported Files:
+
+PDF, JPG, JPEG, PNG
+
+</p>
+
+<input
+type="file"
+id="reportFile"
+accept=".pdf,.jpg,.jpeg,.png"
+onchange="showPatientForm()"
+>
+
+<br><br>
+
+<div id="patientForm" style="display:none;">
+
+<input
+type="text"
+id="patientNameInput"
+placeholder="Patient Name">
+
+<br><br>
+
+<input
+type="number"
+id="patientAgeInput"
+placeholder="Patient Age">
+
+<br><br>
+
+<select id="patientGenderInput">
+
+<option value="">Select Gender</option>
+
+<option>Male</option>
+
+<option>Female</option>
+
+<option>Other</option>
+
+</select>
+
+<br><br>
+
+<button onclick="uploadReport()">
+
+Analyze Report
+
+</button>
+
+</div>
+
+<br>
+
+<div id="loading" style="display:none;">
+
+<h3>
+
+Analyzing Report...
+
+</h3>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= SUPPORTED MEDICAL REPORTS ================= -->
+
+<section class="report-features">
+
+    <h2 class="section-title">
+        Supported Medical Reports
+    </h2>
+
+    <div class="report-container">
+
+        <div class="report-box">
+            <img src="images/blood-report-analysis.jpg" alt="Blood Report">
+            <h3>Blood Report</h3>
+            <p>
+                CBC, Blood Sugar, Vitamin D,
+                Thyroid, Cholesterol,
+                Hemoglobin and Platelets.
+            </p>
+        </div>
+
+        <div class="report-box">
+            <img src="images/mri-scan-analysis.jpg" alt="MRI Scan">
+            <h3>MRI Scan</h3>
+            <p>
+                Brain MRI,
+                Spine MRI,
+                Knee MRI,
+                Neck MRI.
+            </p>
+        </div>
+
+        <div class="report-box">
+            <img src="images/ct-scan-analysis.jpg" alt="CT Scan">
+            <h3>CT Scan</h3>
+            <p>
+                Chest CT,
+                Brain CT,
+                Abdomen CT,
+                Pelvis CT.
+            </p>
+        </div>
+
+        <div class="report-box">
+            <img src="images/xray-analysis.jpg" alt="X-Ray">
+            <h3>X-Ray</h3>
+            <p>
+                Chest X-Ray,
+                Bone X-Ray,
+                Dental X-Ray,
+                Spine X-Ray.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= AI ANALYSIS RESULT ================= -->
+
+<section class="analysis-result">
+
+    <h2 class="section-title">
+        AI Medical Report Analysis
+    </h2>
+
+    <div class="result-card">
+
+        <!-- Patient Information -->
+
+        <div class="patient-info">
+
+            <h3>Patient Information</h3>
+
+            <table>
+
+                <tr>
+                    <td><b>Name</b></td>
+                    <td id="patientName">-</td>
+                </tr>
+
+                <tr>
+                    <td><b>Age</b></td>
+                    <td id="patientAge">-</td>
+                </tr>
+
+                <tr>
+                    <td><b>Gender</b></td>
+                    <td id="patientGender">-</td>
+                </tr>
+
+                <tr>
+                    <td><b>Report Type</b></td>
+                    <td id="reportType">-</td>
+                </tr>
+
+                <tr>
+                    <td><b>Hospital</b></td>
+                    <td id="hospitalName">-</td>
+                </tr>
+
+                <tr>
+                    <td><b>Date</b></td>
+                    <td id="reportDate">-</td>
+                </tr>
+
+            </table>
+
+        </div>
+
+        <br>
+        <hr>
+        <br>
+
+        <!-- AI Summary -->
+
+        <div class="summary">
+
+            <h3>AI Summary</h3>
+
+            <p id="summary">
+                Upload a report to begin AI analysis.
+            </p>
+
+        </div>
+
+        <br>
+        <hr>
+        <br>
+
+        <!-- Risk Level -->
+
+        <div class="risk">
+
+            <h3>Risk Level</h3>
+
+            <h2 id="riskLevel">-</h2>
+
+        </div>
+
+        <br>
+        <hr>
+        <br>
+
+        <!-- Problems -->
+
+        <div class="problems">
+
+            <h3>Detected Problems</h3>
+
+            <ul id="problemList">
+
+                <li>No report uploaded.</li>
+
+            </ul>
+
+        </div>
+
+        <br>
+        <hr>
+        <br>
+
+        <!-- Recommendations -->
+
+        <div class="recommend">
+
+            <h3>Recommendations</h3>
+
+            <ul id="recommendList">
+
+                <li>Upload a report first.</li>
+
+            </ul>
+
+        </div>
+
+        <br>
+        <hr>
+        <br>
+
+        <!-- Specialist -->
+
+        <div class="doctor">
+
+            <h3>Recommended Specialist</h3>
+
+            <p id="doctorName">-</p>
+
+        </div>
+
+        <br>
+        <hr>
+        <br>
+
+        <!-- Emergency -->
+
+        <div class="emergency">
+
+            <h3>Emergency Status</h3>
+
+            <p id="emergencyStatus">
+
+                No emergency detected.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+<!-- ================= FOOTER ================= -->
+<footer>
+    <div class="footer-container">
+        <div class="footer-box">
+            <h2>MediScan AI</h2>
+            <p>AI-powered healthcare, simplified.</p>
+        </div>
+
+        <div class="footer-box">
+            <h3>Contact</h3>
+            <p>support@mediscan.ai</p>
+            <p>+91 XXXXX XXXXX</p>
+            <p>Bhubaneswar, Odisha</p>
+        </div>
+
+        <div class="footer-box">
+            <h3>Team</h3>
+            <p>Nikita — +91 98765-00001</p>
+            <p>Priyanshi Sahoo — +91 98765-00002</p>
+            <p>Kumar Piyush — +91 98765-00003</p>
+            <p>Priyanshu Kumar Singh — +91 98765-00004</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <p class="copyright">
+        © 2026 MediScan AI. All rights reserved.
+    </p>
+</footer>
+
+<script>
+
+function showPatientForm() {
+    document.getElementById("patientForm").style.display = "block";
+}
+
+async function uploadReport() {
+
+    const file = document.getElementById("reportFile").files[0];
+    const name = document.getElementById("patientNameInput").value.trim();
+    const age = document.getElementById("patientAgeInput").value.trim();
+    const gender = document.getElementById("patientGenderInput").value;
+
+    if (!file) {
+        alert("Please upload a report.");
+        return;
+    }
+
+    if (name === "") {
+        alert("Enter Patient Name");
+        return;
+    }
+
+    if (age === "") {
+        alert("Enter Patient Age");
+        return;
+    }
+
+    if (gender === "") {
+        alert("Select Gender");
+        return;
+    }
+
+    document.getElementById("loading").style.display = "block";
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("name", name);
+    formData.append("age", age);
+    formData.append("gender", gender);
+
+    try {
+
+        const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData
+        });
+
+       let text = await response.text();
+
+document.getElementById("loading").style.display = "none";
+
+// Remove markdown if Groq returns ```json ... ```
+text = text
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+let data;
+
+try {
+
+    data = JSON.parse(text);
+
+} catch (e) {
+
+    console.error("Invalid JSON:", text);
+
+    document.getElementById("summary").innerHTML =
+        "<span style='color:red;'>Invalid AI Response</span><br><pre>" +
+        text +
+        "</pre>";
+
+    return;
+}
+
+        if (data.error) {
+
+            document.getElementById("summary").innerHTML =
+                "<span style='color:red;'>" + data.error + "</span>";
+
+            return;
+        }
+
+        //--------------------------
+        // Patient Information
+        //--------------------------
+
+        document.getElementById("patientName").innerText = name;
+        document.getElementById("patientAge").innerText = age;
+        document.getElementById("patientGender").innerText = gender;
+
+        document.getElementById("reportType").innerText =
+            data.reportType || file.name;
+
+        document.getElementById("hospitalName").innerText =
+            data.hospital || "AI Analysis";
+
+        document.getElementById("reportDate").innerText =
+            new Date().toLocaleDateString();
+
+        //--------------------------
+        // Summary
+        //--------------------------
+
+        document.getElementById("summary").innerText =
+            data.summary || "No summary available.";
+
+        //--------------------------
+        // Risk Level
+        //--------------------------
+
+        let risk = data.riskLevel || "Unknown";
+
+        let color = "green";
+        let icon = "🟢";
+
+        if (risk.toLowerCase() === "moderate") {
+            color = "orange";
+            icon = "🟡";
+        }
+
+        if (risk.toLowerCase() === "high") {
+            color = "red";
+            icon = "🔴";
+        }
+
+        if (risk.toLowerCase() === "critical") {
+            color = "darkred";
+            icon = "🚨";
+        }
+
+        const riskBox = document.getElementById("riskLevel");
+
+        riskBox.innerHTML = icon + " " + risk;
+        riskBox.style.color = color;
+
+        //--------------------------
+        // Problems
+        //--------------------------
+
+        let problemHTML = "";
+
+        if (Array.isArray(data.problems)) {
+
+            data.problems.forEach(function(problem){
+
+                problemHTML += "<li>⚠ " + problem + "</li>";
+
+            });
+
+        } else {
+
+            problemHTML = "<li>No problems detected.</li>";
+
+        }
+
+        document.getElementById("problemList").innerHTML = problemHTML;
+
+        //--------------------------
+        // Recommendations
+        //--------------------------
+
+        let recHTML = "";
+
+        if (Array.isArray(data.recommendations)) {
+
+            data.recommendations.forEach(function(rec){
+
+                recHTML += "<li>✅ " + rec + "</li>";
+
+            });
+
+        } else {
+
+            recHTML = "<li>Consult your doctor.</li>";
+
+        }
+
+        document.getElementById("recommendList").innerHTML = recHTML;
+
+        //--------------------------
+        // Specialist
+        //--------------------------
+
+        document.getElementById("doctorName").innerText =
+            data.specialist || "General Physician";
+
+        //--------------------------
+        // Emergency
+        //--------------------------
+
+        const emergencyBox =
+            document.getElementById("emergencyStatus");
+
+        let emergency =
+            data.emergencyStatus || "Normal";
+
+        emergencyBox.innerText = emergency;
+
+        if (
+            emergency.toLowerCase().includes("critical") ||
+            emergency.toLowerCase().includes("emergency")
+        ) {
+
+            emergencyBox.style.color = "red";
+            emergencyBox.style.fontWeight = "bold";
+
+        } else {
+
+            emergencyBox.style.color = "green";
+
+        }
+
+        //--------------------------
+        // Scroll to Results
+        //--------------------------
+
+        document.querySelector(".analysis-result")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
+
+    }
+
+    catch (err) {
+
+        document.getElementById("loading").style.display = "none";
+
+        document.getElementById("summary").innerHTML =
+            "<span style='color:red;'>Unable to connect to Spring Boot Server.</span>";
+
+        console.error(err);
+    }
+
+}
+
+</script>
+
+</body>
+</html>

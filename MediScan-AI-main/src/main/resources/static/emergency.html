@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediScan AI | 24x7 Emergency Healthcare Support</title>
+
+    <!-- Standard MediScan Design System -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animation.css">
+    <link rel="stylesheet" href="css/emergency.css">
+    <link rel="icon" href="images/favicon.jpg">
+</head>
+
+<body>
+
+<!-- ================= BACKGROUND GLOW ================= -->
+<div class="bg-glow"></div>
+
+<!-- ================= NAVBAR ================= -->
+<nav>
+    <a href="index.html" class="logo">
+        <img src="images/logo.png" alt="MediScan Logo">
+        <h2>MediScan AI</h2>
+    </a>
+    <div class="menu">
+        <a href="index.html">Home</a>
+        <a href="report.html">Report</a>
+        <a href="clinical-agent.html">Clinical Agent</a>
+        <a href="doctor.html">Doctors</a>
+        <a href="appointment.html">Appointment</a>
+        <a href="emergency.html" class="active">Emergency</a>
+    </div>
+</nav>
+
+<!-- ================= EMERGENCY HERO ================= -->
+<section class="emergency-hero fade-up">
+    <span class="emergency-badge">🚨 24×7 Immediate Emergency Healthcare Response</span>
+    <h1>Emergency Medical & Ambulance Support</h1>
+    <p>
+        If you or someone nearby is experiencing a life-threatening medical emergency, call national emergency numbers immediately or use our rapid GPS dispatch service below.
+    </p>
+
+    <!-- Hotlines direct call buttons -->
+    <div class="hotline-bar">
+        <a href="emergency-call.html?name=National+Ambulance+Emergency+Dispatch&phone=108&display=108+%2F+102&address=National+Ambulance+Service+(24%C3%977)" target="_blank" class="hotline-btn">
+            <span class="icon">🚑</span>
+            <span>Call Ambulance (108 / 102)</span>
+        </a>
+        <a href="emergency-call.html?name=National+All-in-One+Emergency&phone=112&display=112&address=Pan-India+Emergency+Helpline" target="_blank" class="hotline-btn hotline-secondary">
+            <span class="icon">🆘</span>
+            <span>National Emergency (112)</span>
+        </a>
+        <a href="emergency-call.html?name=National+Blood+Bank+%26+Health+Helpline&phone=104&display=104&address=Health+Information+Helpdesk" target="_blank" class="hotline-btn hotline-secondary">
+            <span class="icon">🩸</span>
+            <span>Blood Bank & Health (104)</span>
+        </a>
+        <a href="emergency-call.html?name=Police+Emergency+Assistance&phone=100&display=100&address=Police+Dispatch" target="_blank" class="hotline-btn hotline-secondary">
+            <span class="icon">👮</span>
+            <span>Police Assistance (100)</span>
+        </a>
+    </div>
+</section>
+
+<!-- ================= MAIN CONTAINER ================= -->
+<main class="emergency-container">
+
+    <!-- GPS Location Sharing Card -->
+    <section class="location-alert-card fade-up">
+        <div class="location-info">
+            <h3><span>📍</span> Share Your Live Emergency Location</h3>
+            <p>
+                In an acute medical crisis, exact coordinates enable rapid ambulance navigation. Click below to detect your current GPS location and share it with emergency dispatchers or family.
+            </p>
+            <div id="gpsCoordsDisplay" class="location-coords" style="display: none;">
+                Coordinates: <strong id="coordsText">--</strong>
+            </div>
+        </div>
+        <div>
+            <button id="btnGetLocation" class="btn-gps" onclick="detectEmergencyLocation()">
+                <span>🛰️</span> Detect & Share My Location
+            </button>
+        </div>
+    </section>
+
+    <!-- Red-Flag Emergency Triage Indicators -->
+    <h2 class="section-title"><span>⚠️</span> Critical Red-Flag Symptoms (Do NOT Wait)</h2>
+    <div class="triage-grid">
+        <div class="triage-card">
+            <div class="triage-icon">🫀</div>
+            <h4>Acute Chest Pain / Pressure</h4>
+            <p>Crushing retrosternal pain radiating to left arm, neck, or jaw accompanied by diaphoresis, shortness of breath, and nausea.</p>
+            <span class="triage-action-tag">Immediate 108 Cardiac Call</span>
+        </div>
+
+        <div class="triage-card">
+            <div class="triage-icon">🧠</div>
+            <h4>Stroke Symptoms (FAST)</h4>
+            <p>Sudden facial droop, arm weakness or numbness, slurred speech, confusion, or sudden severe headache ("worst headache of life").</p>
+            <span class="triage-action-tag">Time-Critical Reperfusion Window</span>
+        </div>
+
+        <div class="triage-card">
+            <div class="triage-icon">🫁</div>
+            <h4>Severe Respiratory Distress</h4>
+            <p>Inability to speak in full sentences, cyanosis (blue lips/fingers), severe stridor, choking, or SpO2 dropping below 90%.</p>
+            <span class="triage-action-tag">Immediate Oxygenation & ICU</span>
+        </div>
+
+        <div class="triage-card">
+            <div class="triage-icon">🩸</div>
+            <h4>Heavy Arterial Bleeding</h4>
+            <p>Pulsating or uncontrollable bright red bleeding from trauma, deep lacerations, or major compound fractures.</p>
+            <span class="triage-action-tag">Apply Direct Pressure & Tourniquet</span>
+        </div>
+    </div>
+
+    <!-- 2-Column Section: Dispatch Request Form & Nearest Trauma Centers -->
+    <div class="emergency-columns">
+
+        <!-- Dispatch Request Form -->
+        <div class="emergency-form-box">
+            <h3><span>🚑</span> Rapid Ambulance Dispatch Request</h3>
+            <p>Submit immediate patient details. MediScan AI emergency coordinator will relay this to the nearest available ambulance unit.</p>
+
+            <form id="emergencyDispatchForm" onsubmit="handleEmergencyDispatch(event)">
+                <div class="em-form-group">
+                    <label for="emPatientName">Patient Full Name *</label>
+                    <input type="text" id="emPatientName" placeholder="Enter patient name" required>
+                </div>
+
+                <div class="em-form-group">
+                    <label for="emContactPhone">Emergency Contact Phone Number *</label>
+                    <input type="tel" id="emContactPhone" placeholder="Enter 10-digit mobile number" required>
+                </div>
+
+                <div class="em-form-group">
+                    <label for="emEmergencyType">Emergency Category *</label>
+                    <select id="emEmergencyType" required>
+                        <option value="">Select Emergency Type</option>
+                        <option value="CARDIAC">Cardiac Arrest / Severe Chest Pain</option>
+                        <option value="TRAUMA">Road Accident / Severe Trauma & Bleeding</option>
+                        <option value="STROKE">Suspected Stroke / Paralysis</option>
+                        <option value="RESPIRATORY">Severe Breathing Trouble / Choking</option>
+                        <option value="PEDIATRIC">Pediatric / Infant Emergency</option>
+                        <option value="POISONING">Poisoning / Drug Overdose</option>
+                        <option value="OTHER">Other Life-Threatening Emergency</option>
+                    </select>
+                </div>
+
+                <div class="em-form-group">
+                    <label for="emAddress">Current Location Address / Landmark *</label>
+                    <textarea id="emAddress" rows="3" placeholder="Enter landmark, street, building, city" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-dispatch">
+                    🚨 Dispatch Emergency Ambulance Request
+                </button>
+
+                <div id="dispatchSuccessAlert" class="dispatch-alert">
+                    ✅ <strong>Emergency Request Dispatched!</strong> Nearest emergency unit alerted. Emergency Coordinator is dialing your phone number right now.
+                </div>
+            </form>
+        </div>
+
+        <!-- 24/7 Trauma Centers -->
+        <div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <span>🏥</span> Nearest 24×7 Trauma & ICU Centers
+            </h3>
+            <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Verified hospitals equipped with 24/7 Emergency Medicine, Level-1 Trauma, and ICU availability.</p>
+
+            <div class="hospital-list">
+                <div class="hospital-card">
+                    <div class="hospital-info">
+                        <h4>AIIMS Emergency & Trauma Centre</h4>
+                        <p>📍 Sijua, Patrapada, Bhubaneswar | 2.4 km away • <strong>📞 0674-2476789</strong></p>
+                        <div class="hospital-tags">
+                            <span class="h-tag h-tag-blue">Level-1 Trauma</span>
+                            <span class="h-tag h-tag-green">24/7 Open</span>
+                            <span class="h-tag h-tag-blue">ICU Beds Available</span>
+                        </div>
+                    </div>
+                    <div class="hospital-actions">
+                        <a href="emergency-call.html?name=AIIMS+Emergency+%26+Trauma+Centre&phone=06742476789&display=0674-2476789&address=Sijua%2C+Patrapada%2C+Bhubaneswar&map=https%3A%2F%2Fmaps.google.com%2F%3Fq%3DAIIMS%2BBhubaneswar" target="_blank" class="btn-h-call">📞 Call ER</a>
+                        <a href="https://maps.google.com/?q=AIIMS+Bhubaneswar" target="_blank" class="btn-h-map">🗺️ Directions</a>
+                    </div>
+                </div>
+
+                <div class="hospital-card">
+                    <div class="hospital-info">
+                        <h4>Apollo Hospitals Emergency Care</h4>
+                        <p>📍 Sainik School Road, Unit 15, Bhubaneswar | 4.8 km away • <strong>📞 1066 / 0674-6661066</strong></p>
+                        <div class="hospital-tags">
+                            <span class="h-tag h-tag-blue">Cardiac Cath Lab</span>
+                            <span class="h-tag h-tag-green">24/7 Ambulance</span>
+                            <span class="h-tag h-tag-blue">Stroke Ready</span>
+                        </div>
+                    </div>
+                    <div class="hospital-actions">
+                        <a href="emergency-call.html?name=Apollo+Hospitals+Emergency+Care&phone=1066&display=1066+%2F+0674-6661066&address=Sainik+School+Road%2C+Unit+15%2C+Bhubaneswar&map=https%3A%2F%2Fmaps.google.com%2F%3Fq%3DApollo%2BHospitals%2BBhubaneswar" target="_blank" class="btn-h-call">📞 Call ER</a>
+                        <a href="https://maps.google.com/?q=Apollo+Hospitals+Bhubaneswar" target="_blank" class="btn-h-map">🗺️ Directions</a>
+                    </div>
+                </div>
+
+                <div class="hospital-card">
+                    <div class="hospital-info">
+                        <h4>KIMS Super Speciality Emergency</h4>
+                        <p>📍 KIIT Road, Patia, Bhubaneswar | 5.2 km away • <strong>📞 0674-2725228</strong></p>
+                        <div class="hospital-tags">
+                            <span class="h-tag h-tag-blue">24/7 Trauma Care</span>
+                            <span class="h-tag h-tag-green">Blood Bank Ready</span>
+                            <span class="h-tag h-tag-blue">Pediatric ICU</span>
+                        </div>
+                    </div>
+                    <div class="hospital-actions">
+                        <a href="emergency-call.html?name=KIMS+Super+Speciality+Emergency&phone=06742725228&display=0674-2725228&address=KIIT+Road%2C+Patia%2C+Bhubaneswar&map=https%3A%2F%2Fmaps.google.com%2F%3Fq%3DKIMS%2BHospital%2BBhubaneswar" target="_blank" class="btn-h-call">📞 Call ER</a>
+                        <a href="https://maps.google.com/?q=KIMS+Hospital+Bhubaneswar" target="_blank" class="btn-h-map">🗺️ Directions</a>
+                    </div>
+                </div>
+
+                <div class="hospital-card">
+                    <div class="hospital-info">
+                        <h4>AMRI Hospitals 24×7 Emergency</h4>
+                        <p>📍 Khandagiri, Bhubaneswar | 3.6 km away • <strong>📞 0674-6666600</strong></p>
+                        <div class="hospital-tags">
+                            <span class="h-tag h-tag-blue">Emergency Dialysis</span>
+                            <span class="h-tag h-tag-green">24/7 Critical Care</span>
+                        </div>
+                    </div>
+                    <div class="hospital-actions">
+                        <a href="emergency-call.html?name=AMRI+Hospitals+24%C3%977+Emergency&phone=06746666600&display=0674-6666600&address=Khandagiri%2C+Bhubaneswar&map=https%3A%2F%2Fmaps.google.com%2F%3Fq%3DAMRI+Hospital+Bhubaneswar" target="_blank" class="btn-h-call">📞 Call ER</a>
+                        <a href="https://maps.google.com/?q=AMRI+Hospital+Bhubaneswar" target="_blank" class="btn-h-map">🗺️ Directions</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Essential First-Aid Action Protocols -->
+    <h2 class="section-title"><span>🩺</span> Critical First-Aid Protocols (While Waiting for Ambulance)</h2>
+    <div class="firstaid-grid">
+        <div class="firstaid-card">
+            <h4><span>🫀</span> CPR Protocol (Unresponsive Patient)</h4>
+            <ul class="firstaid-steps">
+                <li><span class="step-badge">1</span> Check responsiveness & breathing (10 seconds max).</li>
+                <li><span class="step-badge">2</span> Call 108 immediately and put phone on speaker.</li>
+                <li><span class="step-badge">3</span> Place hands in center of chest, push hard and fast (100–120 beats/min).</li>
+                <li><span class="step-badge">4</span> Continue continuous chest compressions until medical personnel arrive.</li>
+            </ul>
+        </div>
+
+        <div class="firstaid-card">
+            <h4><span>🩸</span> Severe Bleeding Control</h4>
+            <ul class="firstaid-steps">
+                <li><span class="step-badge">1</span> Apply firm, direct continuous pressure with sterile gauze or clean cloth.</li>
+                <li><span class="step-badge">2</span> Elevate the bleeding limb above the level of the heart if possible.</li>
+                <li><span class="step-badge">3</span> Do NOT remove soaked dressings; layer fresh cloth on top.</li>
+                <li><span class="step-badge">4</span> If severe arterial spurting persists, apply a tourniquet 2 inches above wound.</li>
+            </ul>
+        </div>
+
+        <div class="firstaid-card">
+            <h4><span>🧠</span> FAST Stroke First-Aid</h4>
+            <ul class="firstaid-steps">
+                <li><span class="step-badge">1</span> <strong>F</strong>ace: Ask person to smile. Does one side of the face droop?</li>
+                <li><span class="step-badge">2</span> <strong>A</strong>rms: Ask person to raise both arms. Does one arm drift downward?</li>
+                <li><span class="step-badge">3</span> <strong>S</strong>peech: Ask person to repeat a simple phrase. Is speech slurred?</li>
+                <li><span class="step-badge">4</span> <strong>T</strong>ime: Note the exact time symptoms began and call 108 immediately.</li>
+            </ul>
+        </div>
+
+        <div class="firstaid-card">
+            <h4><span>🔥</span> Burns & Scalds</h4>
+            <ul class="firstaid-steps">
+                <li><span class="step-badge">1</span> Immediately cool the burn with gentle cool running water for 15–20 mins.</li>
+                <li><span class="step-badge">2</span> Remove constrictive jewelry/clothing before swelling begins.</li>
+                <li><span class="step-badge">3</span> Cover burn loosely with clean cling wrap or non-adherent dressing.</li>
+                <li><span class="step-badge">4</span> NEVER apply ice, butter, toothpaste, or burst any blister.</li>
+            </ul>
+        </div>
+    </div>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+    <div class="footer-container">
+        <div class="footer-box">
+            <h2>MediScan AI</h2>
+            <p>AI-powered healthcare, simplified.</p>
+        </div>
+
+        <div class="footer-box">
+            <h3>Contact</h3>
+            <p>support@mediscan.ai</p>
+            <p>+91 XXXXX XXXXX</p>
+            <p>Bhubaneswar, Odisha</p>
+        </div>
+
+        <div class="footer-box">
+            <h3>Team</h3>
+            <p>Nikita — +91 98765-00001</p>
+            <p>Priyanshi Sahoo — +91 98765-00002</p>
+            <p>Kumar Piyush — +91 98765-00003</p>
+            <p>Priyanshu Kumar Singh — +91 98765-00004</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <p class="copyright">
+        © 2026 MediScan AI. All rights reserved.
+    </p>
+</footer>
+
+<!-- ================= INTERACTIVE SCRIPT ================= -->
+<script>
+function detectEmergencyLocation() {
+    const btn = document.getElementById("btnGetLocation");
+    const display = document.getElementById("gpsCoordsDisplay");
+    const coordsText = document.getElementById("coordsText");
+    const addressBox = document.getElementById("emAddress");
+
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser. Please enter your address manually.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = "<span>🛰️</span> Locating GPS...";
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude.toFixed(5);
+            const lng = position.coords.longitude.toFixed(5);
+            const accuracy = Math.round(position.coords.accuracy);
+
+            coordsText.innerHTML = `${lat}, ${lng} (Accuracy: ~${accuracy}m) <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" style="color:#0d6efd; margin-left:8px;">View on Google Maps</a>`;
+            display.style.display = "inline-block";
+
+            if (addressBox && !addressBox.value) {
+                addressBox.value = `GPS Coordinates: ${lat}, ${lng} (https://maps.google.com/?q=${lat},${lng})`;
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = "<span>✅</span> GPS Location Acquired";
+            btn.style.background = "#198754";
+        },
+        (error) => {
+            console.error("GPS Error:", error);
+            btn.disabled = false;
+            btn.innerHTML = "<span>🛰️</span> Retry GPS Location";
+            alert("Unable to retrieve GPS coordinates: " + error.message + ". Please type your location manually in the address box.");
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+}
+
+function handleEmergencyDispatch(e) {
+    e.preventDefault();
+    const name = document.getElementById("emPatientName").value;
+    const phone = document.getElementById("emContactPhone").value;
+    const type = document.getElementById("emEmergencyType").value;
+    const address = document.getElementById("emAddress").value;
+
+    const alertBox = document.getElementById("dispatchSuccessAlert");
+    alertBox.style.display = "block";
+    alertBox.scrollIntoView({ behavior: "smooth" });
+
+    console.log("Emergency Dispatch Triggered:", { name, phone, type, address, timestamp: new Date().toISOString() });
+}
+
+// ================= EMERGENCY CALL MODAL LOGIC =================
+let currentEmergencyRawNumber = "";
+
+function openEmergencyCall(name, rawNumber, displayFormatted, address, event) {
+    if (event) {
+        event.preventDefault();
+    }
+    currentEmergencyRawNumber = rawNumber;
+
+    document.getElementById("modalFacilityName").textContent = name;
+    document.getElementById("modalFacilityAddress").textContent = address || "24/7 Emergency & Trauma Department";
+    document.getElementById("modalPhoneNumber").textContent = displayFormatted || rawNumber;
+
+    const dialBtn = document.getElementById("btnDialNumber");
+    dialBtn.href = "tel:" + rawNumber;
+
+    const copyBtn = document.getElementById("btnCopyNumber");
+    copyBtn.innerHTML = "<span>📋</span> Copy Number";
+    copyBtn.style.background = "#f1f5f9";
+    copyBtn.style.color = "#1e293b";
+
+    const overlay = document.getElementById("callModalOverlay");
+    overlay.classList.add("active");
+
+    // Also trigger mobile dialer if running on a mobile device
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        window.location.href = "tel:" + rawNumber;
+    }
+}
+
+function copyEmergencyNumber() {
+    const numberToCopy = currentEmergencyRawNumber;
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(numberToCopy).then(() => {
+            notifyCopied();
+        }).catch(() => {
+            fallbackCopy(numberToCopy);
+        });
+    } else {
+        fallbackCopy(numberToCopy);
+    }
+}
+
+function fallbackCopy(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        notifyCopied();
+    } catch (err) {
+        console.error("Fallback copy failed:", err);
+    }
+    document.body.removeChild(textArea);
+}
+
+function notifyCopied() {
+    const btn = document.getElementById("btnCopyNumber");
+    btn.innerHTML = "<span>✅</span> Copied to Clipboard!";
+    btn.style.background = "#dcfce7";
+    btn.style.color = "#166534";
+    setTimeout(() => {
+        btn.innerHTML = "<span>📋</span> Copy Number";
+        btn.style.background = "#f1f5f9";
+        btn.style.color = "#1e293b";
+    }, 3000);
+}
+
+function closeCallModal() {
+    const overlay = document.getElementById("callModalOverlay");
+    overlay.classList.remove("active");
+}
+
+function closeCallModalOnBackdrop(event) {
+    if (event.target.id === "callModalOverlay") {
+        closeCallModal();
+    }
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        closeCallModal();
+    }
+});
+</script>
+
+<!-- ================= EMERGENCY CALL MODAL ================= -->
+<div id="callModalOverlay" class="call-modal-overlay" onclick="closeCallModalOnBackdrop(event)">
+    <div class="call-modal-box" role="dialog" aria-modal="true">
+        <button class="call-modal-close" onclick="closeCallModal()" aria-label="Close">✕</button>
+        <span class="call-modal-icon">🚨</span>
+        <h3 id="modalFacilityName" class="call-modal-title">Emergency Response</h3>
+        <p id="modalFacilityAddress" class="call-modal-subtitle">Direct 24×7 Triage & ER Line</p>
+
+        <div class="call-number-container">
+            <div id="modalPhoneNumber" class="call-number-display">0674-2476789</div>
+            <div class="call-number-tag">Verified 24/7 Emergency Line</div>
+        </div>
+
+        <div class="call-modal-actions">
+            <button id="btnCopyNumber" class="btn-modal-copy" onclick="copyEmergencyNumber()">
+                <span>📋</span> Copy Number
+            </button>
+            <a id="btnDialNumber" href="tel:06742476789" class="btn-modal-dial">
+                <span>📞</span> Call Now
+            </a>
+        </div>
+
+        <div class="call-modal-tips">
+            <strong>💡 Quick Guidance for Desktop Users:</strong>
+            Dial this number directly from your mobile phone. State patient's condition, exact location, and whether immediate ICU or ambulance transit is required.
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
