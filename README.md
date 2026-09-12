@@ -140,10 +140,11 @@ src/main/resources/
 - [ ] Online consultation
 - [ ] Longitudinal health history tracking
 
-## 👨‍💻 Author
-**Priyansi Sahoo , **
-**Nikita , **
-**Kumar Piyush , **
+## 👨‍💻 Authors
+
+**Priyansi Sahoo**  
+**Nikita**  
+**Kumar Piyush**  
 **Priyanshu Kumar Singh**
 
 ## 📄 License
