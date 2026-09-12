@@ -141,9 +141,9 @@ src/main/resources/
 - [ ] Longitudinal health history tracking
 
 ## 👨‍💻 Author
-**Priyansi Sahoo**
-**Nikita**
-**Kumar Piyush**
+**Priyansi Sahoo , **
+**Nikita , **
+**Kumar Piyush , **
 **Priyanshu Kumar Singh**
 
 ## 📄 License
