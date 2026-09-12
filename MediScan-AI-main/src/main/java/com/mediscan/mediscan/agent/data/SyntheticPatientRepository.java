@@ -60,14 +60,14 @@ public class SyntheticPatientRepository {
     }
 
     /* =========================================================================
-     * PATIENT 101: John Doe - High Severity Allergy Contradiction
+     * PATIENT 101: Robert Shayne - High Severity Allergy Contradiction
      * Contradiction: Allergy Record = NKDA vs Clinical Note = Severe Penicillin/Augmentin Reaction
      * Consultation: Physician considering Augmentin for bacterial bronchitis
      * ========================================================================= */
     private PatientSourceBundle createPatient101() {
         PatientSourceBundle p = new PatientSourceBundle();
         p.setPatientId("PAT-101");
-        p.setName("John Doe");
+        p.setName("Robert Shayne");
         p.setAge(58);
         p.setGender("Male");
         p.setScenarioTitle("Penicillin Hypersensitivity Contradiction (Safety Critical)");
@@ -75,12 +75,12 @@ public class SyntheticPatientRepository {
         p.setDeliberateContradictionDescription("EHR Allergy List shows 'NKDA' (No Known Drug Allergies), whereas ED clinical note from 2023-04-12 documents severe acute urticaria and wheezing following Amoxicillin-Clavulanate.");
 
         p.setConsultationTranscript("""
-Dr. Robert Evans (PCP): Good morning, John. What brings you into the clinic today?
-John Doe: Good morning doctor. I've had this persistent chesty cough for the last 5 days with yellowish phlegm, a low-grade fever around 100.4 F, and feeling completely worn out.
+Dr. Robert Evans (PCP): Good morning, Robert. What brings you into the clinic today?
+Robert Shayne: Good morning doctor. I've had this persistent chesty cough for the last 5 days with yellowish phlegm, a low-grade fever around 100.4 F, and feeling completely worn out.
 Dr. Evans: Let me listen to your lungs. Deep breath in... and out. Yes, there are scattered rhonchi and mild wheezes in both lower lobes. Given the discolored sputum and fever duration, this looks consistent with acute acute bacterial bronchitis.
-John Doe: Is there an antibiotic that can clear this up quickly?
+Robert Shayne: Is there an antibiotic that can clear this up quickly?
 Dr. Evans: If symptoms persist past tomorrow or your fever climbs, I would consider prescribing a 7-day course of Augmentin (Amoxicillin-Clavulanate 875/125mg) or Cefuroxime. Have you had any issues with antibiotics recently?
-John Doe: Not that I recall recently, but my records should show whatever I took in the past.
+Robert Shayne: Not that I recall recently, but my records should show whatever I took in the past.
 Dr. Evans: Okay, your intake chart says No Known Drug Allergies (NKDA). Let's do a chest X-ray and basic blood work first before calling in the prescription. In the meantime, rest, stay hydrated, and use an albuterol inhaler PRN.
 """);
 

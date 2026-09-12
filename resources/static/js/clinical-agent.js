@@ -71,13 +71,13 @@ function getToolDisplayInfo(toolName, apiDisplayName) {
 const FALLBACK_SYNTHETIC_PATIENTS = [
     {
         patientId: "PAT-101",
-        name: "John Doe",
+        name: "Robert Shayne",
         age: 58,
         gender: "Male",
         scenarioTitle: "Penicillin Hypersensitivity Contradiction (Safety Critical)",
         scenarioDescription: "Patient presenting with bronchitis symptoms. EHR allergy banner states NKDA, but prior ED discharge notes document severe anaphylactoid reaction to Augmentin.",
         deliberateContradictionDescription: "EHR Allergy List shows 'NKDA' (No Known Drug Allergies), whereas ED clinical note from 2023-04-12 documents severe acute urticaria and wheezing following Amoxicillin-Clavulanate.",
-        consultationTranscript: "Dr. Robert Evans (PCP): Good morning, John. What brings you into the clinic today?\\nJohn Doe: Good morning doctor. I've had this persistent chesty cough for the last 5 days with yellowish phlegm, a low-grade fever around 100.4 F, and feeling completely worn out.\\nDr. Evans: Let me listen to your lungs. Deep breath in... and out. Yes, there are scattered rhonchi and mild wheezes in both lower lobes. Given the discolored sputum and fever duration, this looks consistent with acute acute bacterial bronchitis.\\nJohn Doe: Is there an antibiotic that can clear this up quickly?\\nDr. Evans: If symptoms persist past tomorrow or your fever climbs, I would consider prescribing a 7-day course of Augmentin (Amoxicillin-Clavulanate 875/125mg) or Cefuroxime. Have you had any issues with antibiotics recently?\\nJohn Doe: Not that I recall recently, but my records should show whatever I took in the past.\\nDr. Evans: Okay, your intake chart says No Known Drug Allergies (NKDA). Let's do a chest X-ray and basic blood work first before calling in the prescription. In the meantime, rest, stay hydrated, and use an albuterol inhaler PRN.\\n",
+        consultationTranscript: "Dr. Robert Evans (PCP): Good morning, Robert. What brings you into the clinic today?\\nRobert Shayne: Good morning doctor. I've had this persistent chesty cough for the last 5 days with yellowish phlegm, a low-grade fever around 100.4 F, and feeling completely worn out.\\nDr. Evans: Let me listen to your lungs. Deep breath in... and out. Yes, there are scattered rhonchi and mild wheezes in both lower lobes. Given the discolored sputum and fever duration, this looks consistent with acute acute bacterial bronchitis.\\nRobert Shayne: Is there an antibiotic that can clear this up quickly?\\nDr. Evans: If symptoms persist past tomorrow or your fever climbs, I would consider prescribing a 7-day course of Augmentin (Amoxicillin-Clavulanate 875/125mg) or Cefuroxime. Have you had any issues with antibiotics recently?\\nRobert Shayne: Not that I recall recently, but my records should show whatever I took in the past.\\nDr. Evans: Okay, your intake chart says No Known Drug Allergies (NKDA). Let's do a chest X-ray and basic blood work first before calling in the prescription. In the meantime, rest, stay hydrated, and use an albuterol inhaler PRN.\\n",
         clinicalNotes: [
             { noteId: "NOTE-2023-0412", date: "2023-04-12", author: "Dr. Sarah Jenkins, MD", department: "Emergency Medicine", noteType: "EMERGENCY_ENCOUNTER", text: "CHIEF COMPLAINT: Acute allergic reaction / rash.\\nHISTORY: 56-year-old male presented to Emergency Dept 35 minutes after taking his first dose of oral Augmentin (Amoxicillin-Clavulanate 875mg) prescribed for sinusitis. Developed acute diffuse pruritic urticarial wheals across torso and arms, lip swelling, and mild inspiratory stridor/dyspnea.\\nIMPRESSION: Severe Type-I anaphylactoid hypersensitivity to Amoxicillin-Clavulanate (Penicillin class)." }
         ],
@@ -1062,79 +1062,338 @@ function generateSimulatedAgentResponse(patient) {
     const is102 = patient.patientId === 'PAT-102';
     const is103 = patient.patientId === 'PAT-103';
 
+    const pName = is101 ? (patient.name && patient.name !== 'John Doe' ? patient.name : 'Robert Shayne') : (patient.name || 'Patient');
+    const pAge = patient.age || (is101 ? 58 : is102 ? 64 : is103 ? 72 : 52);
+    const pGender = patient.gender || 'Male';
+    const encDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    let overallStatus = is101 ? 'VERIFIED_WITH_ESCALATIONS' : 'VERIFIED';
     let conflicts = [];
+    let gaps = [];
+    let toolCallLogs = [];
+    let validationRules = [];
+    let warnings = [];
+    let followUpRecord = {};
     let actions = [];
 
     if (is101) {
         conflicts.push({
             conflictId: "CONF-01",
-            type: "ALLERGY_CONTRADICTION",
+            field: "Allergy Documentation (Beta-Lactam / Penicillin)",
             severity: "HIGH",
+            status: "ESCALATED",
             sourceA: "EHR Allergy List: Reported NKDA",
+            valueA: "No Known Drug Allergies (NKDA) recorded at triage intake",
             sourceB: "Emergency Dept Note (2023-04-12): Severe Anaphylactoid Reaction to Augmentin",
-            reconciledResolution: "Penicillin/Augmentin allergy confirmed from historical emergency discharge documentation. Intake allergy status corrected from NKDA to confirmed hypersensitivity."
+            valueB: "Documented severe anaphylactoid reaction with diffuse urticaria, wheezing, and IV Epinephrine / Methylprednisolone following Augmentin (Amoxicillin-Clavulanate)",
+            autonomousRationale: "Allergy contradiction involves high-risk beta-lactam exposure. Invoked MedicationAllergyLookupService to evaluate cross-reactivity and safety profile.",
+            resolvingTool: "MedicationAllergyLookupService",
+            resolutionNotes: "ESCALATED TO CLINICIAN: Severe beta-lactam anaphylactoid hypersensitivity documented in ED note NOTE-2023-0412. Automated system cannot override allergy without clinician verification. Augmentin prescription blocked. Recommended non-beta-lactam alternative per guideline GL-AAAAI-03."
         });
-        actions.push(
-            { id: "ACT-01", actionType: "ALLERGY_FLAG", description: "Flag severe penicillin hypersensitivity across all electronic medical records", priority: "HIGH" },
-            { id: "ACT-02", actionType: "PRESCRIPTION_REVISION", description: "Do not prescribe Augmentin; select non-beta-lactam antibiotic (e.g. Azithromycin or Doxycycline)", priority: "HIGH" }
-        );
+
+        gaps.push({
+            field: "Diagnostic Imaging & CBC Follow-up",
+            description: "Consultation transcript notes physician planned chest X-ray and CBC with differential prior to finalizing outpatient antibiotic choice.",
+            impact: "Missing objective radiography to rule out focal consolidation prior to definitive antibiotic selection.",
+            actionTaken: "Ordered standard outpatient PA/lateral chest radiography and CBC with differential prior to discharge.",
+            resolvingTool: "PatientRecordLookupService",
+            status: "RESOLVED"
+        });
+
+        toolCallLogs = [
+            {
+                id: "TOOL-01",
+                toolName: "PatientRecordLookupService",
+                displayName: "Fetching Patient File",
+                callReason: "Ingest complete synthetic patient data bundle (transcripts, notes, meds, allergies, labs)",
+                inputSummary: `patientId: PAT-101, simulateFailure: false`,
+                outputSummary: `Fetched ${pName} (${pGender}, ${pAge}yo). Found: 2 notes, 1 active med (Albuterol), 1 allergy record, 1 lab panel.`,
+                timestamp: new Date().toISOString(),
+                durationMs: 32,
+                status: "SUCCESS"
+            },
+            {
+                id: "TOOL-02",
+                toolName: "MedicationAllergyLookupService",
+                displayName: "Checking Medicine Safety",
+                callReason: "Evaluate pharmacologic cross-reactivity and adverse drug-drug interactions",
+                inputSummary: "Meds: [Augmentin, Amoxicillin-Clavulanate, Cefuroxime] | Allergies: 1 (NKDA vs ED Anaphylaxis)",
+                outputSummary: "Safety Evaluation: Safe=false | Allergy Warnings: 3 (Severe Penicillin Hypersensitivity) | Escalation: Mandatory clinician sign-off required",
+                timestamp: new Date().toISOString(),
+                durationMs: 14,
+                status: "SUCCESS"
+            },
+            {
+                id: "TOOL-03",
+                toolName: "ClinicalGuidelineRAGService",
+                displayName: "Looking Up Medical Guidelines",
+                callReason: "Retrieve evidence-based guideline recommendations from local knowledge base",
+                inputSummary: "Query: 'penicillin allergy augmentin anaphylaxis nkda reconciliation', maxResults: 2",
+                outputSummary: "Found 2 guideline matches: [GL-AAAAI-03 - Penicillin & Beta-Lactam Hypersensitivity Management]; [GL-AAAAI-08 - Clinical EHR Allergy Reconciliation & Safety Escalation Protocols]",
+                timestamp: new Date().toISOString(),
+                durationMs: 22,
+                status: "SUCCESS"
+            },
+            {
+                id: "TOOL-04",
+                toolName: "RecordValidationService",
+                displayName: "Double-Checking the Report",
+                callReason: "Automated deterministic validation of synthesized clinical documentation",
+                inputSummary: "Validating draft note against 5 clinical safety rules",
+                outputSummary: "All 5 clinical validation rules passed successfully.",
+                timestamp: new Date().toISOString(),
+                durationMs: 19,
+                status: "SUCCESS"
+            }
+        ];
+
+        validationRules = [
+            { ruleName: "RULE_REQUIRED_FIELDS", passed: true, severity: "INFO", message: "All mandatory clinical record sections present and populated." },
+            { ruleName: "RULE_HIGH_SEVERITY_CONFLICTS", passed: true, severity: "WARNING", message: "Passed with safety escalation: 1 high-risk conflict(s) flagged for mandatory clinician sign-off." },
+            { ruleName: "RULE_TEMPORAL_VALUE_CONSISTENCY", passed: true, severity: "INFO", message: "Temporal and value consistency verified successfully." },
+            { ruleName: "RULE_GUARDRAIL_SAFETY", passed: true, severity: "INFO", message: "Guardrail compliance verified: No unauthorized diagnostic or prescriptive directives." },
+            { ruleName: "RULE_PHYSIOLOGICAL_BOUNDS", passed: true, severity: "INFO", message: "Physiological bounds verified successfully." }
+        ];
+        warnings = ["Passed with safety escalation: 1 high-risk conflict(s) flagged for mandatory clinician sign-off."];
+
+        followUpRecord = {
+            patientId: "PAT-101",
+            patientName: pName,
+            encounterDate: encDate,
+            chiefComplaint: "Persistent productive cough for 5 days with yellowish phlegm, low-grade fever (100.4 F), and generalized fatigue.",
+            historyOfPresentIllness: `${pName} is a ${pAge}-year-old male presenting with a 5-day history of worsening chesty cough productive of yellowish phlegm, accompanied by low-grade fever up to 100.4 F and fatigue. Auscultation reveals scattered rhonchi and mild bilateral expiratory wheezes in both lower lobes. Physician considered Augmentin.`,
+            objectiveFindingsSummary: "Vital Signs: Temperature 100.4 F, BP 124/78 mmHg, HR 82 bpm, RR 18 breaths/min, SpO2 97% on room air. Lungs: Scattered rhonchi and mild wheezing bilaterally, no focal consolidation. Labs: Mild leukocytosis (WBC 11.8 K/uL).",
+            assessmentSummary: "Acute bacterial bronchitis. SAFETY CRITICAL WARNING: Intake allergy documentation states 'NKDA', but historical ED encounter from 2023-04-12 documents severe Type-I anaphylactoid reaction to Augmentin requiring IM Epinephrine. Augmentin and beta-lactams are strictly contraindicated.",
+            proposedFollowUpPlan: "1. STRICTLY AVOID Augmentin and all penicillin/beta-lactam antibiotics.\n2. Recommend non-beta-lactam alternative: Azithromycin 500mg Day 1, then 250mg PO Daily Days 2-5, or Doxycycline 100mg PO BID for 7 days if bacterial symptoms persist.\n3. Continue Albuterol HFA Inhaler (90mcg) 1-2 puffs every 4-6 hours PRN for bronchospasm.\n4. Complete outpatient chest radiography to confirm absence of focal pneumonia.\n5. Immediately correct EHR allergy banner from NKDA to Confirmed Severe Penicillin Hypersensitivity.",
+            allergyAlerts: [
+                "CRITICAL ALLERGY ALERT: Severe Type-I Anaphylactoid Hypersensitivity to Penicillins / Augmentin (Documented 2023-04-12 ED encounter). DO NOT PRESCRIBE AUGMENTIN OR AMOXICILLIN-CLAVULANATE."
+            ],
+            reconciledMedications: [
+                "Albuterol HFA Inhaler 90mcg (1-2 puffs Q4-6H PRN) - ACTIVE",
+                "Augmentin (Amoxicillin-Clavulanate) - PERMANENTLY WITHHELD / CONTRAINDICATED (Severe Hypersensitivity)"
+            ],
+            disclaimer: "Draft for clinician review — not a diagnosis. Synthetic/deidentified data only."
+        };
+
+        actions = [
+            { id: "ACT-01", targetRole: "CLINICIAN", priority: "HIGH", description: "Review and sign off on Penicillin/Augmentin allergy contraindication escalation before issuing prescription.", category: "SAFETY_ESCALATION", status: "PENDING_CLINICIAN_REVIEW" },
+            { id: "ACT-02", targetRole: "NURSE", priority: "HIGH", description: "Update EHR allergy banner from NKDA to confirmed Severe Amoxicillin-Clavulanate Hypersensitivity.", category: "EHR_RECONCILIATION", status: "PENDING" },
+            { id: "ACT-03", targetRole: "PHARMACIST", priority: "HIGH", description: "Cross-check prescribed respiratory antimicrobial against beta-lactam allergy safety registry.", category: "MEDICATION_VERIFICATION", status: "PENDING" },
+            { id: "ACT-04", targetRole: "PATIENT", priority: "MEDIUM", description: "Use Albuterol inhaler as needed for wheezing; notify clinic immediately if fever exceeds 101 F or breathing worsens.", category: "PATIENT_EDUCATION", status: "SCHEDULED" }
+        ];
+
     } else if (is102) {
         conflicts.push({
             conflictId: "CONF-02",
-            type: "RENAL_SAFETY_CONTRAINDICATION",
+            field: "Metformin Dosing vs Impaired Renal Function",
             severity: "HIGH",
+            status: "ESCALATED",
             sourceA: "EHR Prescriptions: Metformin 1000mg BID (2000mg daily)",
+            valueA: "Metformin 1000mg PO BID (active prescription)",
             sourceB: "BMP Lab Report: eGFR 28 mL/min/1.73m2 (Severe Renal Impairment)",
-            reconciledResolution: "Metformin contraindicated due to eGFR < 30 mL/min. Therapy must be discontinued immediately to prevent lactic acidosis."
+            valueB: "Serum Creatinine 2.3 mg/dL, eGFR 28 mL/min/1.73m2 (Stage 4 CKD)",
+            autonomousRationale: "ADA/KDIGO Guidelines mandate discontinuation of Metformin when eGFR falls below 30 mL/min due to elevated risk of lactic acidosis.",
+            resolvingTool: "ClinicalGuidelineRAGService",
+            resolutionNotes: "ESCALATED TO CLINICIAN: Metformin contraindicated due to eGFR < 30 mL/min. Metformin therapy must be discontinued immediately to prevent lactic acidosis. Linagliptin or low-dose insulin recommended."
         });
-        actions.push(
-            { id: "ACT-01", actionType: "MEDICATION_DISCONTINUATION", description: "Discontinue Metformin immediately due to renal safety contraindication (eGFR < 30)", priority: "HIGH" },
-            { id: "ACT-02", actionType: "REGIMEN_SUBSTITUTION", description: "Initiate renal-safe alternative glycemic regimen (e.g. Linagliptin or low-dose Insulin)", priority: "HIGH" }
-        );
+
+        gaps.push({
+            field: "Renal Function Repeat & Electrolyte Monitoring",
+            description: "Acute eGFR decline from baseline stage 3 to stage 4 CKD requires confirmatory repeat BMP within 48-72 hours.",
+            impact: "Risk of unmonitored progressive renal impairment and electrolyte imbalance.",
+            actionTaken: "Scheduled STAT repeat BMP and urine albumin-to-creatinine ratio (uACR).",
+            resolvingTool: "LabRetrievalService",
+            status: "RESOLVED"
+        });
+
+        toolCallLogs = [
+            { id: "TOOL-01", toolName: "PatientRecordLookupService", displayName: "Fetching Patient File", callReason: "Ingest multi-source diabetes and renal profile", inputSummary: "patientId: PAT-102", outputSummary: "Fetched Maria Santos (Female, 64yo). Found: Metformin 1000mg BID, Lisinopril 10mg, BMP labs.", timestamp: new Date().toISOString(), durationMs: 28, status: "SUCCESS" },
+            { id: "TOOL-02", toolName: "LabRetrievalService", displayName: "Pulling Latest Lab Report", callReason: "Retrieve verified BMP and eGFR trajectory", inputSummary: "Lab Panel: BMP 2024-02-20", outputSummary: "eGFR: 28 mL/min/1.73m2 [CRITICAL LOW], Creatinine: 2.3 mg/dL [ELEVATED]", timestamp: new Date().toISOString(), durationMs: 25, status: "SUCCESS" },
+            { id: "TOOL-03", toolName: "ClinicalGuidelineRAGService", displayName: "Looking Up Medical Guidelines", callReason: "Query ADA/KDIGO renal dosing safety guidelines for biguanides", inputSummary: "Query: 'metformin egfr under 30 contraindication lactic acidosis'", outputSummary: "Found guideline GL-ADA-02: Discontinue Metformin when eGFR < 30 mL/min.", timestamp: new Date().toISOString(), durationMs: 18, status: "SUCCESS" },
+            { id: "TOOL-04", toolName: "RecordValidationService", displayName: "Double-Checking the Report", callReason: "Validate medication safety and renal bounds", inputSummary: "5 clinical safety rules", outputSummary: "All 5 validation rules passed with renal safety escalation.", timestamp: new Date().toISOString(), durationMs: 15, status: "SUCCESS" }
+        ];
+
+        validationRules = [
+            { ruleName: "RULE_REQUIRED_FIELDS", passed: true, severity: "INFO", message: "All mandatory clinical record sections present and populated." },
+            { ruleName: "RULE_HIGH_SEVERITY_CONFLICTS", passed: true, severity: "WARNING", message: "Passed with safety escalation: Metformin contraindication (eGFR < 30) flagged for clinician review." },
+            { ruleName: "RULE_TEMPORAL_VALUE_CONSISTENCY", passed: true, severity: "INFO", message: "Temporal consistency verified." },
+            { ruleName: "RULE_GUARDRAIL_SAFETY", passed: true, severity: "INFO", message: "Guardrail compliance verified." },
+            { ruleName: "RULE_PHYSIOLOGICAL_BOUNDS", passed: true, severity: "INFO", message: "Physiological bounds verified." }
+        ];
+        warnings = ["Metformin contraindicated: eGFR < 30 mL/min."];
+
+        followUpRecord = {
+            patientId: "PAT-102",
+            patientName: "Maria Santos",
+            encounterDate: encDate,
+            chiefComplaint: "Routine type 2 diabetes follow-up; reports morning fatigue, mild nausea, and leg cramps.",
+            historyOfPresentIllness: "Maria Santos is a 64-year-old female with T2D and hypertension taking Metformin 1000mg BID and Lisinopril 10mg daily. Recent lab reveals worsening kidney function with eGFR 28 mL/min.",
+            objectiveFindingsSummary: "BP 132/80 mmHg, HR 76 bpm. Recent BMP: Creatinine 2.3 mg/dL, eGFR 28 mL/min/1.73m2 (Stage 4 CKD).",
+            assessmentSummary: "Type 2 Diabetes Mellitus with Stage 4 Chronic Kidney Disease. Critical contraindication: Metformin 1000mg BID must be stopped immediately due to severe risk of lactic acidosis (eGFR < 30).",
+            proposedFollowUpPlan: "1. Discontinue Metformin 1000mg BID immediately.\n2. Initiate renal-safe DPP-4 inhibitor (Linagliptin 5mg daily) or low-dose basal insulin for glycemic control.\n3. Continue Lisinopril 10mg with close potassium monitoring.\n4. Repeat BMP in 48-72 hours.\n5. Nephrology referral for CKD stage 4 co-management.",
+            allergyAlerts: [],
+            reconciledMedications: [
+                "Metformin 1000mg BID - DISCONTINUED / CONTRAINDICATED (eGFR < 30)",
+                "Lisinopril 10mg PO Daily - ACTIVE (Monitor renal function)",
+                "Linagliptin 5mg PO Daily - RECOMMENDED RENAL-SAFE ALTERNATIVE"
+            ],
+            disclaimer: "Draft for clinician review — not a diagnosis. Synthetic/deidentified data only."
+        };
+
+        actions = [
+            { id: "ACT-01", targetRole: "CLINICIAN", priority: "HIGH", description: "Discontinue Metformin and approve renal-safe alternative (Linagliptin 5mg daily).", category: "SAFETY_CONTRAINDICATION", status: "PENDING_CLINICIAN_REVIEW" },
+            { id: "ACT-02", targetRole: "PATIENT", priority: "HIGH", description: "Stop taking Metformin immediately; do not resume until cleared by physician.", category: "PATIENT_EDUCATION", status: "SCHEDULED" },
+            { id: "ACT-03", targetRole: "NURSE", priority: "MEDIUM", description: "Schedule repeat BMP lab draw and nephrology consultation appointment.", category: "LAB_FOLLOWUP", status: "PENDING" }
+        ];
+
     } else if (is103) {
         conflicts.push({
             conflictId: "CONF-03",
-            type: "DRUG_INTERACTION_HEMORRHAGE_RISK",
+            field: "Anticoagulation vs Over-the-Counter NSAID Therapy",
             severity: "HIGH",
+            status: "ESCALATED",
             sourceA: "EHR Prescription: Warfarin 5mg daily (Supratherapeutic INR 3.4)",
+            valueA: "Warfarin 5mg daily PO with INR 3.4",
             sourceB: "Consultation Dialogue: Patient self-administering OTC Naproxen 500mg BID",
-            reconciledResolution: "Critical hemorrhage risk detected between concurrent high-dose NSAID and supratherapeutic anticoagulation."
+            valueB: "Naproxen 500mg PO BID for knee pain with burning epigastric discomfort and dark stools",
+            autonomousRationale: "Concurrent high-dose NSAID with supratherapeutic warfarin exponentially magnifies gastrointestinal bleeding risk.",
+            resolvingTool: "MedicationAllergyLookupService",
+            resolutionNotes: "ESCALATED TO CLINICIAN: Critical hemorrhage risk. Patient instructed to stop Naproxen immediately. Order STAT CBC, stool occult blood, and repeat PT/INR within 24-48 hours."
         });
-        actions.push(
-            { id: "ACT-01", actionType: "NSAID_STOP", description: "Stop all NSAID use (Naproxen/Ibuprofen) immediately; substitute with Acetaminophen for pain control", priority: "HIGH" },
-            { id: "ACT-02", actionType: "INR_MONITOR", description: "Recheck PT/INR within 48 hours and adjust Warfarin dose to return to target range (2.0-3.0)", priority: "HIGH" }
-        );
+
+        gaps.push({
+            field: "Occult Gastrointestinal Blood Screening & Repeat INR",
+            description: "Dark stools reported in consultation transcript with supratherapeutic INR 3.4 requires urgent fecal occult blood test.",
+            impact: "Undetected active upper gastrointestinal hemorrhage.",
+            actionTaken: "Ordered urgent Hemoccult stool card and STAT PT/INR.",
+            resolvingTool: "LabRetrievalService",
+            status: "RESOLVED"
+        });
+
+        toolCallLogs = [
+            { id: "TOOL-01", toolName: "PatientRecordLookupService", displayName: "Fetching Patient File", callReason: "Ingest coagulation records and med history", inputSummary: "patientId: PAT-103", outputSummary: "Fetched Arthur Pendelton (Male, 72yo). Warfarin 5mg, Metoprolol 50mg, INR 3.4.", timestamp: new Date().toISOString(), durationMs: 26, status: "SUCCESS" },
+            { id: "TOOL-02", toolName: "MedicationAllergyLookupService", displayName: "Checking Medicine Safety", callReason: "Evaluate Warfarin-Naproxen drug-drug interaction", inputSummary: "Warfarin + Naproxen", outputSummary: "Major Drug Interaction: Severe GI bleeding and ulceration hazard.", timestamp: new Date().toISOString(), durationMs: 15, status: "SUCCESS" },
+            { id: "TOOL-03", toolName: "ClinicalGuidelineRAGService", displayName: "Looking Up Medical Guidelines", callReason: "Retrieve CHEST anticoagulation bleeding safety guidelines", inputSummary: "Query: 'warfarin supratherapeutic inr nsaid interaction bleeding'", outputSummary: "Guideline: Withhold NSAID, hold/reduce Warfarin dose, monitor for overt bleeding.", timestamp: new Date().toISOString(), durationMs: 20, status: "SUCCESS" },
+            { id: "TOOL-04", toolName: "RecordValidationService", displayName: "Double-Checking the Report", callReason: "Validate bleeding safety guardrails", inputSummary: "5 clinical safety rules", outputSummary: "Passed with high-severity safety escalation.", timestamp: new Date().toISOString(), durationMs: 17, status: "SUCCESS" }
+        ];
+
+        validationRules = [
+            { ruleName: "RULE_REQUIRED_FIELDS", passed: true, severity: "INFO", message: "All mandatory clinical record sections present and populated." },
+            { ruleName: "RULE_HIGH_SEVERITY_CONFLICTS", passed: true, severity: "WARNING", message: "Passed with safety escalation: Warfarin + NSAID bleeding hazard flagged for clinician review." },
+            { ruleName: "RULE_TEMPORAL_VALUE_CONSISTENCY", passed: true, severity: "INFO", message: "Temporal consistency verified." },
+            { ruleName: "RULE_GUARDRAIL_SAFETY", passed: true, severity: "INFO", message: "Guardrail compliance verified." },
+            { ruleName: "RULE_PHYSIOLOGICAL_BOUNDS", passed: true, severity: "INFO", message: "Physiological bounds verified." }
+        ];
+        warnings = ["High hemorrhage risk: Warfarin + Naproxen with INR 3.4."];
+
+        followUpRecord = {
+            patientId: "PAT-103",
+            patientName: "Arthur Pendelton",
+            encounterDate: encDate,
+            chiefComplaint: "Severe right knee pain; reports stomach burning and dark stools after taking OTC Naproxen.",
+            historyOfPresentIllness: "Arthur Pendelton is a 72-year-old male on Warfarin 5mg daily for atrial fibrillation. He reports taking OTC Naproxen 500mg BID for one week for knee pain, now presenting with dyspepsia and dark stools. Latest INR is 3.4.",
+            objectiveFindingsSummary: "BP 128/74 mmHg, HR 68 bpm regular. Abdomen: Mild epigastric tenderness to palpation, no rebound. Labs: PT 38.2s, INR 3.4 (Supratherapeutic).",
+            assessmentSummary: "Atrial Fibrillation on Warfarin with supratherapeutic anticoagulation and acute NSAID-induced dyspepsia with suspected upper GI bleeding.",
+            proposedFollowUpPlan: "1. STOP all Naproxen / NSAIDs immediately.\n2. Substitute with Acetaminophen 500-650mg Q6H PRN (max 2g/day) for knee pain.\n3. Hold today's Warfarin dose; recheck PT/INR in 24 hours.\n4. Perform fecal occult blood test; initiate oral PPI (Pantoprazole 40mg daily).\n5. Instruct patient to report any melena or hematemesis to the nearest ED immediately.",
+            allergyAlerts: [],
+            reconciledMedications: [
+                "Warfarin 5mg PO Daily - HELD TODAY (INR 3.4, recheck in 24h)",
+                "Metoprolol Succinate 50mg PO Daily - ACTIVE",
+                "Naproxen 500mg BID - PERMANENTLY DISCONTINUED (Severe Bleeding Hazard)",
+                "Acetaminophen 500mg PO PRN - RECOMMENDED ANALGESIC ALTERNATIVE"
+            ],
+            disclaimer: "Draft for clinician review — not a diagnosis. Synthetic/deidentified data only."
+        };
+
+        actions = [
+            { id: "ACT-01", targetRole: "CLINICIAN", priority: "HIGH", description: "Hold Warfarin dose, order repeat STAT INR, and evaluate need for endoscopic evaluation.", category: "SAFETY_ESCALATION", status: "PENDING_CLINICIAN_REVIEW" },
+            { id: "ACT-02", targetRole: "PATIENT", priority: "HIGH", description: "Cease all Naproxen/NSAID use; seek emergency care if dark black stools or vomiting blood occurs.", category: "PATIENT_EDUCATION", status: "SCHEDULED" },
+            { id: "ACT-03", targetRole: "PHARMACIST", priority: "HIGH", description: "Flag patient profile to block dispensing of NSAIDs while on anticoagulant therapy.", category: "PHARMACY_SAFETY", status: "PENDING" }
+        ];
+
     } else {
+        // PAT-104 / Custom
         conflicts.push({
             conflictId: "CONF-04",
-            type: "LAB_DISCREPANCY_HYPERGLYCEMIA",
+            field: "Glycemic Control Self-Report vs Objective Laboratory Biomarkers",
             severity: "HIGH",
-            sourceA: "Consultation Dialogue: Patient claims morning sugars 90-95 mg/dL",
+            status: "ESCALATED",
+            sourceA: "Consultation Dialogue: Patient claims fasting sugars 90-95 mg/dL",
+            valueA: "Patient reported home fasting glucose 90-95 mg/dL",
             sourceB: "Verified CMP: Fasting Blood Glucose 245 mg/dL and HbA1c 10.2%",
-            reconciledResolution: "Objective laboratory data reveals severe uncontrolled hyperglycemia contradicting subjective self-monitoring reports."
+            valueB: "Fasting Blood Glucose 245 mg/dL [CRITICAL HIGH], HbA1c 10.2% [CRITICAL HIGH]",
+            autonomousRationale: "Objective central laboratory values reveal severe uncontrolled hyperglycemia, directly contradicting subjective self-monitoring report.",
+            resolvingTool: "LabRetrievalService",
+            resolutionNotes: "ESCALATED TO CLINICIAN: Severe uncontrolled hyperglycemia confirmed by certified laboratory analyzer (HbA1c 10.2%, Fasting Glucose 245 mg/dL). Clinician consultation required to intensify pharmacotherapy and verify home glucometer calibration."
         });
-        actions.push(
-            { id: "ACT-01", actionType: "DIABETES_MANAGEMENT", description: "Initiate comprehensive glycemic optimization plan and review home glucometer calibration", priority: "HIGH" },
-            { id: "ACT-02", actionType: "ENDOCRINE_FOLLOWUP", description: "Schedule endocrine follow-up in 2 weeks and repeat HbA1c in 90 days", priority: "HIGH" }
-        );
+
+        gaps.push({
+            field: "Diabetic Microvascular Screen & Nephropathy Evaluation",
+            description: "No urine microalbumin or diabetic retinal exam documented in the preceding 12 months.",
+            impact: "Unmonitored risk of microvascular diabetic complications (retinopathy/nephropathy).",
+            actionTaken: "Ordered urine microalbumin-to-creatinine ratio and generated referral for dilated eye examination.",
+            resolvingTool: "ClinicalGuidelineRAGService",
+            status: "RESOLVED"
+        });
+
+        toolCallLogs = [
+            { id: "TOOL-01", toolName: "PatientRecordLookupService", displayName: "Fetching Patient File", callReason: "Ingest diabetic history and medication adherence logs", inputSummary: `patientId: ${patient.patientId}`, outputSummary: `Fetched ${pName} (${pGender}, ${pAge}yo). Found: Atorvastatin 20mg, CMP & HbA1c labs.`, timestamp: new Date().toISOString(), durationMs: 25, status: "SUCCESS" },
+            { id: "TOOL-02", toolName: "LabRetrievalService", displayName: "Pulling Latest Lab Report", callReason: "Retrieve verified glycemic and metabolic panel", inputSummary: "CMP & HbA1c 2024-03-05", outputSummary: "Glucose 245 mg/dL [CRITICAL HIGH], HbA1c 10.2% [CRITICAL HIGH], eGFR 88 mL/min.", timestamp: new Date().toISOString(), durationMs: 28, status: "SUCCESS" },
+            { id: "TOOL-03", toolName: "ClinicalGuidelineRAGService", displayName: "Looking Up Medical Guidelines", callReason: "Retrieve ADA Standards of Medical Care in Diabetes guidelines", inputSummary: "Query: 'uncontrolled diabetes hba1c over 10 insulin dual therapy'", outputSummary: "Guideline: When HbA1c >= 10.0%, initiate dual combination therapy or injectable GLP-1/insulin.", timestamp: new Date().toISOString(), durationMs: 20, status: "SUCCESS" },
+            { id: "TOOL-04", toolName: "RecordValidationService", displayName: "Double-Checking the Report", callReason: "Validate glycemic documentation and safety rules", inputSummary: "5 clinical safety rules", outputSummary: "Passed with glycemic escalation warning.", timestamp: new Date().toISOString(), durationMs: 16, status: "SUCCESS" }
+        ];
+
+        validationRules = [
+            { ruleName: "RULE_REQUIRED_FIELDS", passed: true, severity: "INFO", message: "All mandatory clinical record sections present and populated." },
+            { ruleName: "RULE_HIGH_SEVERITY_CONFLICTS", passed: true, severity: "WARNING", message: "Passed with safety escalation: Severe uncontrolled hyperglycemia (HbA1c 10.2%) flagged for clinician review." },
+            { ruleName: "RULE_TEMPORAL_VALUE_CONSISTENCY", passed: true, severity: "INFO", message: "Temporal consistency verified." },
+            { ruleName: "RULE_GUARDRAIL_SAFETY", passed: true, severity: "INFO", message: "Guardrail compliance verified." },
+            { ruleName: "RULE_PHYSIOLOGICAL_BOUNDS", passed: true, severity: "INFO", message: "Physiological bounds verified." }
+        ];
+        warnings = ["Severe uncontrolled hyperglycemia: HbA1c 10.2%."];
+
+        followUpRecord = {
+            patientId: patient.patientId || "PAT-104",
+            patientName: pName,
+            encounterDate: encDate,
+            chiefComplaint: "Follow-up evaluation for type 2 diabetes and hyperlipidemia.",
+            historyOfPresentIllness: `${pName} is a ${pAge}-year-old ${pGender.toLowerCase()} presenting for routine diabetes follow-up. While the patient reports feeling well with home sugars reported as normal, certified laboratory results demonstrate marked hyperglycemia with HbA1c 10.2%.`,
+            objectiveFindingsSummary: "BP 126/82 mmHg, HR 74 bpm. Labs (2024-03-05): Fasting Glucose 245 mg/dL [CRITICAL HIGH], HbA1c 10.2% [CRITICAL HIGH], Total Cholesterol 188 mg/dL, eGFR 88 mL/min/1.73m2.",
+            assessmentSummary: "Severe uncontrolled Type 2 Diabetes Mellitus with marked lab discrepancy versus reported home values. Requires prompt escalation to multi-agent glycemic pharmacotherapy.",
+            proposedFollowUpPlan: "1. Initiate dual oral combination therapy or basal insulin per ADA clinical guidelines.\n2. Patient education on home glucometer calibration and standardized logbook tracking.\n3. Order urine microalbumin-to-creatinine ratio and schedule dilated eye examination.\n4. Diabetic nutrition and certified diabetes educator consult.\n5. Follow-up clinic visit in 2-3 weeks; repeat HbA1c in 90 days.",
+            allergyAlerts: [],
+            reconciledMedications: [
+                "Atorvastatin 20mg PO Daily - ACTIVE",
+                "Metformin 500mg PO BID - RECOMMENDED INITIATION (Renal function normal, eGFR 88)"
+            ],
+            disclaimer: "Draft for clinician review — not a diagnosis. Synthetic/deidentified data only."
+        };
+
+        actions = [
+            { id: "ACT-01", targetRole: "CLINICIAN", priority: "HIGH", description: "Review marked HbA1c elevation (10.2%) and initiate intensified antihyperglycemic regimen.", category: "GLYCEMIC_OPTIMIZATION", status: "PENDING_CLINICIAN_REVIEW" },
+            { id: "ACT-02", targetRole: "NURSE", priority: "MEDIUM", description: "Perform glucometer check and verify home testing technique with patient.", category: "PATIENT_EDUCATION", status: "PENDING" },
+            { id: "ACT-03", targetRole: "PATIENT", priority: "MEDIUM", description: "Record daily fasting and 2-hour postprandial blood sugars in logbook.", category: "SELF_MONITORING", status: "SCHEDULED" }
+        ];
     }
 
     return {
         patientId: patient.patientId,
+        overallStatus: overallStatus,
         status: "SUCCESS",
+        confidenceScore: 0.95,
         conflicts: conflicts,
-        toolCalls: [
-            { toolName: "PatientRecordLookupService", status: "SUCCESS", output: `Retrieved clinical chart and history for ${patient.name}` },
-            { toolName: "MedicationAllergyLookupService", status: "SUCCESS", output: "Reconciled active medication dosages and hypersensitivity logs" },
-            { toolName: "ClinicalGuidelineRAGService", status: "SUCCESS", output: "Cross-referenced evidence-based clinical practice guidelines" },
-            { toolName: "RecordValidationService", status: "SUCCESS", output: "All 5 clinical validation and safety guardrail checks passed" }
-        ],
+        gaps: gaps,
+        toolCallLogs: toolCallLogs,
+        validationResult: {
+            valid: true,
+            escalationRequired: overallStatus === 'VERIFIED_WITH_ESCALATIONS',
+            rules: validationRules,
+            warnings: warnings,
+            errorMessages: []
+        },
+        followUpRecord: followUpRecord,
         actionItems: actions,
-        followUpRecord: {
-            patientName: patient.name,
-            encounterDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-            notes: "Autonomous reconciliation pipeline reconciled multi-source clinical data with safety guardrails applied."
-        }
+        disclaimer: "Draft for clinician review — not a diagnosis. Synthetic/deidentified data only."
     };
 }
 

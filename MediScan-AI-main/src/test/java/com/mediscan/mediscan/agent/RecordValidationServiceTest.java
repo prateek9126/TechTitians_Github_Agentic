@@ -31,7 +31,7 @@ class RecordValidationServiceTest {
     private FollowUpRecord createStandardValidRecord() {
         FollowUpRecord record = new FollowUpRecord();
         record.setPatientId("PAT-101");
-        record.setPatientName("John Doe");
+        record.setPatientName("Robert Shayne");
         record.setEncounterDate("2024-03-15");
         record.setChiefComplaint("Cough with mild fever for 5 days.");
         record.setHistoryOfPresentIllness("58-year-old male with productive cough and mild fever. Rhonchi in lower lung fields.");
