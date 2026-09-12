@@ -19,11 +19,12 @@ public class DoctorService {
     private final RestTemplate restTemplate = new RestTemplateBuilder()
             .defaultHeader(HttpHeaders.USER_AGENT,
                     "MediScanAI/1.0 (support@mediscan.ai)")
-            .setConnectTimeout(Duration.ofSeconds(10))
-            .setReadTimeout(Duration.ofSeconds(30))
+            .setConnectTimeout(Duration.ofMillis(1500))
+            .setReadTimeout(Duration.ofMillis(2500))
             .build();
 
     private final ObjectMapper mapper = new ObjectMapper();
+    private volatile long lastNominatimErrorTime = 0;
 
     private static final String[] SEARCH_TERMS = {
             "hospital", "clinic", "medical centre", "super speciality hospital"
@@ -57,9 +58,16 @@ public class DoctorService {
 
         String targetSpec = wantsSpecific ? prettify(specialization) : "All";
 
+        // Circuit breaker: if Nominatim failed within the last 60 seconds (common on cloud hosts like Render/AWS),
+        // return rich verified place-wise doctors immediately without stalling the HTTP request
+        if (System.currentTimeMillis() - lastNominatimErrorTime < 60000) {
+            System.out.println("CIRCUIT BREAKER: Nominatim recently failed or blocked on cloud host; serving verified place-wise doctors immediately.");
+            return getPlaceWiseDoctorsFallback(city, state, targetSpec);
+        }
+
         double[] coords = geocodeCity(city, state);
         if (coords == null) {
-            System.out.println("GEOCODE: no results for city='" + city + "', state='" + state + "' - using place-wise doctor fallback");
+            System.out.println("GEOCODE: no results or error for city='" + city + "', state='" + state + "' - using place-wise doctor fallback");
             return getPlaceWiseDoctorsFallback(city, state, targetSpec);
         }
         System.out.println("GEOCODE RESOLVED: lat=" + coords[0] + " lon=" + coords[1]);
@@ -73,24 +81,29 @@ public class DoctorService {
         for (String t : SEARCH_TERMS) terms.add(t);
 
         for (String term : terms) {
-            addUniqueDoctors(doctors, seenHospitals, seenDoctors,
-                    searchStructuredAmenity(term, city, coords[0], coords[1], targetSpec));
-            sleep(600);
-            if (seenHospitals.size() >= 8) break;
+            List<Doctor> amenityDocs = searchStructuredAmenity(term, city, coords[0], coords[1], targetSpec);
+            addUniqueDoctors(doctors, seenHospitals, seenDoctors, amenityDocs);
+            if (seenHospitals.size() >= 6) break;
 
-            addUniqueDoctors(doctors, seenHospitals, seenDoctors,
-                    searchFreeText(term, city, coords[0], coords[1], targetSpec));
-            sleep(600);
-            if (seenHospitals.size() >= 8) break;
+            if (System.currentTimeMillis() - lastNominatimErrorTime < 5000) {
+                // Nominatim call failed during this search; avoid stalling with repeated external calls
+                break;
+            }
+
+            List<Doctor> freeTextDocs = searchFreeText(term, city, coords[0], coords[1], targetSpec);
+            addUniqueDoctors(doctors, seenHospitals, seenDoctors, freeTextDocs);
+            if (seenHospitals.size() >= 6) break;
+
+            if (System.currentTimeMillis() - lastNominatimErrorTime < 5000) {
+                break;
+            }
         }
 
-        if (doctors.isEmpty()) {
-            System.out.println("Falling back to viewbox search around city centre");
+        if (doctors.isEmpty() && (System.currentTimeMillis() - lastNominatimErrorTime >= 5000)) {
             for (String term : terms) {
                 addUniqueDoctors(doctors, seenHospitals, seenDoctors,
                         searchByViewbox(term, coords[0], coords[1], targetSpec));
-                sleep(600);
-                if (seenHospitals.size() >= 8) break;
+                if (seenHospitals.size() >= 6 || (System.currentTimeMillis() - lastNominatimErrorTime < 5000)) break;
             }
         }
 
@@ -234,7 +247,8 @@ public class DoctorService {
                 doctors.addAll(docsForHospital);
             }
         } catch (Exception e) {
-            System.err.println("NOMINATIM " + mode + " ERROR: " + e.getMessage());
+            lastNominatimErrorTime = System.currentTimeMillis();
+            System.err.println("NOMINATIM " + mode + " ERROR (activating circuit breaker): " + e.getMessage());
         }
         return doctors;
     }
@@ -273,7 +287,8 @@ public class DoctorService {
                         fArr.get(0).get("lon").asDouble() };
             }
         } catch (Exception e) {
-            System.err.println("GEOCODE ERROR: " + e.getMessage());
+            lastNominatimErrorTime = System.currentTimeMillis();
+            System.err.println("GEOCODE ERROR (activating circuit breaker): " + e.getMessage());
         }
         return null;
     }

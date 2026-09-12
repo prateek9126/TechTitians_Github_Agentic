@@ -1,8 +1,11 @@
 // ===============================
-// API URL
+// API URL (Dynamic for Deployed & Local Environments)
 // ===============================
-
-const API = "http://localhost:8080/api";
+const API = (window.location.protocol.startsWith("http")
+    ? (window.location.port === "5500" || window.location.port === "3000"
+        ? "http://localhost:8080/api"
+        : window.location.origin + "/api")
+    : "http://localhost:8080/api");
 
 
 // ===============================
