@@ -18,8 +18,11 @@ import java.util.regex.Pattern;
 @Service
 public class GroqService {
 
-    @Value("${groq.api.key}")
+    @Value("${groq.api.key:demo_key}")
     private String apiKey;
+
+    @Value("${openai.api.key:}")
+    private String openAiKey;
 
     private final OkHttpClient client = new OkHttpClient();
 
@@ -43,9 +46,10 @@ public class GroqService {
     }
 
     public String analyze(String reportText, String name, String age, String gender) {
+        String effectiveKey = (openAiKey != null && !openAiKey.isBlank()) ? openAiKey.trim() : (apiKey != null ? apiKey.trim() : "");
         // 1. If API key is not configured or is a placeholder, engage intelligent clinical fallback analyzer
-        if (apiKey == null || apiKey.isBlank() || apiKey.equalsIgnoreCase("demo_key") || apiKey.contains("${")) {
-            System.out.println("[GroqService] Groq API key is not configured. Engaging intelligent clinical fallback engine.");
+        if (effectiveKey.isBlank() || effectiveKey.equalsIgnoreCase("demo_key") || effectiveKey.contains("${")) {
+            System.out.println("[AIService] API key is not configured. Engaging intelligent clinical fallback engine.");
             return fallbackAnalyze(reportText, name, age, gender);
         }
 
@@ -90,8 +94,12 @@ Medical Report:
             JsonArray messages = new JsonArray();
             messages.add(message);
 
+            boolean isOpenAI = effectiveKey.startsWith("sk-");
+            String endpoint = isOpenAI ? "https://api.openai.com/v1/chat/completions" : "https://api.groq.com/openai/v1/chat/completions";
+            String model = isOpenAI ? "gpt-3.5-turbo" : "llama-3.3-70b-versatile";
+
             JsonObject body = new JsonObject();
-            body.addProperty("model", "llama-3.3-70b-versatile");
+            body.addProperty("model", model);
             body.add("messages", messages);
             body.addProperty("temperature", 0);
 
@@ -101,8 +109,8 @@ Medical Report:
             );
 
             Request request = new Request.Builder()
-                    .url("https://api.groq.com/openai/v1/chat/completions")
-                    .addHeader("Authorization", "Bearer " + apiKey)
+                    .url(endpoint)
+                    .addHeader("Authorization", "Bearer " + effectiveKey)
                     .addHeader("Content-Type", "application/json")
                     .post(requestBody)
                     .build();
@@ -110,7 +118,7 @@ Medical Report:
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     String errBody = response.body() != null ? response.body().string() : "";
-                    System.err.println("[GroqService] Groq API returned error (HTTP " + response.code() + " : " + errBody + "). Engaging intelligent clinical fallback engine.");
+                    System.err.println("[AIService] " + (isOpenAI ? "OpenAI" : "Groq") + " API returned HTTP " + response.code() + ": " + errBody + ". Engaging intelligent clinical fallback engine.");
                     return fallbackAnalyze(reportText, name, age, gender);
                 }
 
