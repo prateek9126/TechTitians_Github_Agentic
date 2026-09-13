@@ -497,6 +497,119 @@ function switchResultView(view) {
     }
 }
 
+function getClientSideDemoData(type, name, age, gender) {
+    if (type === 'metabolic') {
+        const rawText = `DEMO COMPREHENSIVE METABOLIC PANEL (CMP) REPORT\n` +
+`SYNTHETIC SAMPLE - NOT A REAL MEDICAL REPORT\n` +
+`Patient Name: ${name}    Age / Sex: ${age} / ${gender}\n` +
+`Patient ID: DEMO-002           Report Date: 12-Sep-2026\n` +
+`Specimen: Serum                Status: Completed\n` +
+`Laboratory: MediScan AI Central Diagnostic Laboratories\n\n` +
+`Investigation              Result   Unit             Reference Range\n` +
+`Fasting Blood Glucose      215      mg/dL            70 - 99\n` +
+`Hemoglobin A1c             9.4      %                < 5.7\n` +
+`Serum Creatinine           2.2      mg/dL            0.6 - 1.2\n` +
+`eGFR                       32       mL/min/1.73m2    > 60\n` +
+`Blood Urea Nitrogen (BUN)  28       mg/dL            7 - 20\n` +
+`Potassium                  5.3      mEq/L            3.5 - 5.0\n` +
+`Sodium                     140      mEq/L            136 - 145\n` +
+`Total Cholesterol          248      mg/dL            < 200\n\n` +
+`Demo Interpretation: Marked hyperglycemia and reduced eGFR with elevated creatinine noted.\n` +
+`Authorized Signatory: Dr. A. Sharma, MD | MediScan AI Diagnostics`;
+
+        return {
+            summary: `This comprehensive medical report evaluation for ${name} identifies marked hyperglycemia and significantly reduced glomerular filtration rate with elevated creatinine. Fasting blood glucose is markedly elevated at 215 mg/dL along with an HbA1c of 9.4%, indicating chronic poor glycemic control. Renal markers show acute or chronic renal filtration compromise with serum creatinine at 2.2 mg/dL and eGFR reduced to 32 mL/min/1.73m2. Mild hyperkalemia (5.3 mEq/L) and elevated BUN (28 mg/dL) require prompt management. Urgent specialist evaluation by an Endocrinologist and Nephrologist is strongly advised.`,
+            riskLevel: "Critical",
+            emergencyStatus: "Critical / Immediate Attention Required",
+            specialist: "Endocrinologist",
+            hospital: "MediScan AI Central Diagnostic Laboratories",
+            reportType: "Demo_Abnormal_Metabolic_Report.pdf",
+            rawReportText: rawText,
+            problems: [
+                "Marked Hyperglycemia (Fasting Blood Glucose 215 mg/dL, Ref: 70-99): Significantly elevated blood glucose indicating uncontrolled diabetes.",
+                "Very High HbA1c (9.4%, Ref: <5.7): Severe sustained hyperglycemia over past 3 months.",
+                "Markedly Elevated Serum Creatinine (2.2 mg/dL, Ref: 0.6-1.2): Suggestive of renal impairment or kidney injury.",
+                "Reduced eGFR (32 mL/min/1.73m2, Ref: >60): Indicative of moderate reduction in glomerular filtration rate (Stage 3 CKD range).",
+                "Mild Hyperkalemia (Serum Potassium 5.3 mEq/L, Ref: 3.5-5.0): Elevated serum potassium requiring dietary and pharmacological review.",
+                "Elevated Blood Urea Nitrogen (BUN 28 mg/dL, Ref: 7-20): Reflects reduced renal urea clearance or dehydration.",
+                "Hypercholesterolemia (Total Cholesterol 248 mg/dL, Ref: <200): Elevated cholesterol increasing cardiovascular risk."
+            ],
+            recommendations: [
+                "Immediate consultation with an Endocrinologist / Diabetologist for glycemic stabilization and insulin regimen review.",
+                "Urgent Nephrology consult to investigate renal impairment (eGFR 32) and monitor electrolyte balance.",
+                "Strict low-sodium, diabetic-renal dietary management under clinical dietitian guidance.",
+                "Repeat Renal Function Test (RFT) and Serum Electrolytes in 48-72 hours to ensure stability."
+            ],
+            tests: [
+                { testName: "Fasting Blood Glucose", value: "215", unit: "mg/dL", referenceRange: "70 - 99", flag: "CRITICAL", status: "critical" },
+                { testName: "Hemoglobin A1c (HbA1c)", value: "9.4", unit: "%", referenceRange: "< 5.7", flag: "CRITICAL", status: "critical" },
+                { testName: "Serum Creatinine", value: "2.2", unit: "mg/dL", referenceRange: "0.6 - 1.2", flag: "HIGH", status: "high" },
+                { testName: "eGFR", value: "32", unit: "mL/min/1.73m2", referenceRange: "> 60", flag: "LOW", status: "low" },
+                { testName: "Blood Urea Nitrogen (BUN)", value: "28", unit: "mg/dL", referenceRange: "7 - 20", flag: "HIGH", status: "high" },
+                { testName: "Potassium", value: "5.3", unit: "mEq/L", referenceRange: "3.5 - 5.0", flag: "HIGH", status: "high" },
+                { testName: "Sodium", value: "140", unit: "mEq/L", referenceRange: "136 - 145", flag: "NORMAL", status: "normal" },
+                { testName: "Total Cholesterol", value: "248", unit: "mg/dL", referenceRange: "< 200", flag: "HIGH", status: "high" }
+            ]
+        };
+    } else {
+        const rawText = `DEMO COMPLETE BLOOD COUNT (CBC) REPORT\n` +
+`SYNTHETIC SAMPLE - NOT A REAL MEDICAL REPORT\n` +
+`Patient Name: ${name}    Age / Sex: ${age} / ${gender}\n` +
+`Patient ID: DEMO-001           Report Date: 12-Sep-2026\n` +
+`Specimen: Whole Blood (EDTA)   Status: Completed\n` +
+`Laboratory: MediScan AI Central Diagnostic Laboratories\n\n` +
+`Investigation              Result   Unit             Reference Range\n` +
+`Hemoglobin (Hb)            14.2     g/dL             13.0 - 17.0\n` +
+`RBC Count                  4.8      million/cumm     4.5 - 5.5\n` +
+`Hematocrit (PCV)           43       %                40 - 50\n` +
+`MCV                        89       fL               83 - 101\n` +
+`MCH                        29.6     pg               27 - 32\n` +
+`MCHC                       33.2     g/dL             31.5 - 34.5\n` +
+`RDW                        13.1     %                11.6 - 14.0\n` +
+`Total WBC Count            7,200    /cumm            4,000 - 11,000\n` +
+`Neutrophils                58       %                40 - 80\n` +
+`Lymphocytes                34       %                20 - 40\n` +
+`Eosinophils                3        %                1 - 6\n` +
+`Monocytes                  4        %                2 - 10\n` +
+`Basophils                  1        %                0 - 2\n` +
+`Platelet Count             245,000  /cumm            150,000 - 410,000\n\n` +
+`Demo Interpretation: Sample CBC values shown above are within healthy reference intervals.\n` +
+`Authorized Signatory: Dr. S. Rao, MD | MediScan AI Diagnostics`;
+
+        return {
+            summary: `Evaluation of the diagnostic medical report for ${name} indicates that all analyzed parameters are within normal clinical reference ranges. A total of 14 laboratory biomarkers (including Hemoglobin (Hb), RBC Count, Hematocrit, Platelets, and WBC differential) were evaluated and confirmed healthy. No acute pathological disorders, abnormal cell counts, or clinical risks were detected. Overall physiological indicators demonstrate healthy baseline stability. A routine wellness consultation with a General Physician is recommended for preventive care.`,
+            riskLevel: "Low",
+            emergencyStatus: "Normal",
+            specialist: "General Physician",
+            hospital: "MediScan AI Central Diagnostic Laboratories",
+            reportType: "Demo_Blood_Report_CBC.pdf",
+            rawReportText: rawText,
+            problems: [],
+            recommendations: [
+                "Maintain healthy balanced dietary intake and daily hydration.",
+                "Engage in regular moderate physical activity (at least 150 minutes weekly).",
+                "Continue annual preventive health screenings and wellness checkups."
+            ],
+            tests: [
+                { testName: "Hemoglobin (Hb)", value: "14.2", unit: "g/dL", referenceRange: "13.0 - 17.0", flag: "NORMAL", status: "normal" },
+                { testName: "RBC Count", value: "4.8", unit: "million/cumm", referenceRange: "4.5 - 5.5", flag: "NORMAL", status: "normal" },
+                { testName: "Hematocrit (PCV)", value: "43", unit: "%", referenceRange: "40 - 50", flag: "NORMAL", status: "normal" },
+                { testName: "MCV", value: "89", unit: "fL", referenceRange: "83 - 101", flag: "NORMAL", status: "normal" },
+                { testName: "MCH", value: "29.6", unit: "pg", referenceRange: "27 - 32", flag: "NORMAL", status: "normal" },
+                { testName: "MCHC", value: "33.2", unit: "g/dL", referenceRange: "31.5 - 34.5", flag: "NORMAL", status: "normal" },
+                { testName: "RDW", value: "13.1", unit: "%", referenceRange: "11.6 - 14.0", flag: "NORMAL", status: "normal" },
+                { testName: "Total WBC Count", value: "7,200", unit: "/cumm", referenceRange: "4,000 - 11,000", flag: "NORMAL", status: "normal" },
+                { testName: "Neutrophils", value: "58", unit: "%", referenceRange: "40 - 80", flag: "NORMAL", status: "normal" },
+                { testName: "Lymphocytes", value: "34", unit: "%", referenceRange: "20 - 40", flag: "NORMAL", status: "normal" },
+                { testName: "Eosinophils", value: "3", unit: "%", referenceRange: "1 - 6", flag: "NORMAL", status: "normal" },
+                { testName: "Monocytes", value: "4", unit: "%", referenceRange: "2 - 10", flag: "NORMAL", status: "normal" },
+                { testName: "Basophils", value: "1", unit: "%", referenceRange: "0 - 2", flag: "NORMAL", status: "normal" },
+                { testName: "Platelet Count", value: "245,000", unit: "/cumm", referenceRange: "150,000 - 410,000", flag: "NORMAL", status: "normal" }
+            ]
+        };
+    }
+}
+
 async function quickLoadDemo(type) {
     let name = document.getElementById("patientNameInput").value.trim();
     if (!name) {
@@ -518,22 +631,32 @@ async function quickLoadDemo(type) {
     document.getElementById("loadingText").innerText = 
         type === 'metabolic' ? "Analyzing Demo Metabolic Report (Diabetic & Renal Panel)..." : "Analyzing Demo CBC Blood Report...";
 
+    const fileName = (type === 'metabolic') ? "Demo_Abnormal_Metabolic_Report.pdf" : "Demo_Blood_Report_CBC.pdf";
+
     try {
         const url = `/api/demo-report?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}&age=${encodeURIComponent(age)}&gender=${encodeURIComponent(gender)}`;
-        const response = await fetch(url);
-        const text = await response.text();
-        document.getElementById("loading").style.display = "none";
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
 
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+
+        const text = await response.text();
         const clean = text.replace(/```json/gi, "").replace(/```/g, "").trim();
         const data = JSON.parse(clean);
-
-        const fileName = (type === 'metabolic') ? "Demo_Abnormal_Metabolic_Report.pdf" : "Demo_Blood_Report_CBC.pdf";
+        document.getElementById("loading").style.display = "none";
         renderAnalysisResults(data, name, age, gender, fileName);
 
     } catch (err) {
+        // Robust fallback: Works instantly if backend is unreachable or deployed on Render static site
+        console.warn("Backend demo endpoint delayed or unreachable, rendering verified clinical report demo immediately:", err);
         document.getElementById("loading").style.display = "none";
-        alert("Error loading demo report: " + err.message);
-        console.error(err);
+        const fallbackData = getClientSideDemoData(type, name, age, gender);
+        renderAnalysisResults(fallbackData, name, age, gender, fileName);
     }
 }
 
