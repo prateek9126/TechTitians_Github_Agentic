@@ -69,16 +69,36 @@ Our Artificial Intelligence analyzes the report and provides a complete medical 
 
 <div class="upload-card">
 
-<img src="images/report-upload.png" alt="Upload">
+<!-- JUDGES & 1-CLICK DEMO SHOWCASE -->
+<div class="judge-demo-bar">
+    <div class="demo-badge">⭐ 1-CLICK DEMO FOR JUDGES</div>
+    <p class="demo-desc">Select a preset to test AI report analysis instantly:</p>
+    <div class="demo-buttons">
+        <button type="button" class="btn-demo-preset btn-demo-normal" onclick="quickLoadDemo('cbc')">
+            🟢 <b>Demo 1: Normal CBC</b>
+            <span>14 Tests Healthy Range</span>
+        </button>
+        <button type="button" class="btn-demo-preset btn-demo-alert" onclick="quickLoadDemo('metabolic')">
+            🔴 <b>Demo 2: Diabetic Alert</b>
+            <span>Elevated Glucose & Creatinine</span>
+        </button>
+    </div>
+    <div class="demo-download-row">
+        <span>Need a sample file?</span>
+        <a href="/samples/Demo_Blood_Report_CBC.pdf" download="Demo_Blood_Report_CBC.pdf" class="btn-sample-download">
+            📥 Download Sample CBC PDF
+        </a>
+    </div>
+</div>
+
+<div class="or-separator"><span>OR UPLOAD YOUR OWN FILE</span></div>
+
+<img src="images/report-upload.png" alt="Upload" class="upload-icon-img">
 
 <h2>Upload Medical Report</h2>
 
-<p>
-
-Supported Files:
-
-PDF, JPG, JPEG, PNG
-
+<p class="upload-supported-text">
+Supported Files: PDF, JPG, JPEG, PNG
 </p>
 
 <input
@@ -88,42 +108,36 @@ accept=".pdf,.jpg,.jpeg,.png"
 onchange="showPatientForm()"
 >
 
-<br><br>
+<br>
 
 <div id="patientForm" style="display:none;">
 
-<input
-type="text"
-id="patientNameInput"
-placeholder="Patient Name">
+<div class="form-field-group">
+    <input
+    type="text"
+    id="patientNameInput"
+    placeholder="Patient Name"
+    value="Prateek"
+    >
+</div>
 
-<br><br>
+<div class="form-row-2col">
+    <input
+    type="number"
+    id="patientAgeInput"
+    placeholder="Age"
+    value="23"
+    >
+    <select id="patientGenderInput">
+        <option value="">Gender</option>
+        <option value="Male" selected>Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+    </select>
+</div>
 
-<input
-type="number"
-id="patientAgeInput"
-placeholder="Patient Age">
-
-<br><br>
-
-<select id="patientGenderInput">
-
-<option value="">Select Gender</option>
-
-<option>Male</option>
-
-<option>Female</option>
-
-<option>Other</option>
-
-</select>
-
-<br><br>
-
-<button onclick="uploadReport()">
-
-Analyze Report
-
+<button type="button" class="btn-analyze-submit" onclick="uploadReport()">
+    🔍 Analyze Medical Report
 </button>
 
 </div>
@@ -132,10 +146,9 @@ Analyze Report
 
 <div id="loading" style="display:none;">
 
-<h3>
-
-Analyzing Report...
-
+<div class="loading-spinner"></div>
+<h3 id="loadingText">
+Analyzing Report with MediScan AI...
 </h3>
 
 </div>
@@ -214,6 +227,37 @@ Analyzing Report...
 
     <div class="result-card">
 
+        <!-- Result View Switcher Tabs -->
+        <div class="result-view-tabs">
+            <button type="button" class="tab-view-btn active" id="tabBtnAi" onclick="switchResultView('ai')">
+                🤖 AI Clinical Findings & Biomarkers
+            </button>
+            <button type="button" class="tab-view-btn" id="tabBtnDoc" onclick="switchResultView('doc')">
+                📄 View Medical Report Document
+            </button>
+        </div>
+
+        <!-- Document Viewer (Shown when tab is 'doc') -->
+        <div id="documentViewCard" class="document-view-card" style="display:none;">
+            <div class="doc-header-card">
+                <div class="doc-title-group">
+                    <span class="doc-badge-live">ORIGINAL REPORT DOCUMENT</span>
+                    <h3 id="docReportTitle">Complete Blood Count (CBC) Diagnostic Report</h3>
+                    <p>MediScan AI Central Diagnostic Laboratories • NABL Automated Clinical Testing</p>
+                </div>
+                <div class="doc-actions">
+                    <a id="btnDownloadCurrentPdf" href="/samples/Demo_Blood_Report_CBC.pdf" download="Demo_Blood_Report_CBC.pdf" class="btn-download-doc">
+                        📥 Download Official PDF
+                    </a>
+                </div>
+            </div>
+            <div class="doc-paper">
+                <pre id="rawReportDisplay">No report document loaded.</pre>
+            </div>
+        </div>
+
+        <div id="aiAnalysisView">
+
         <!-- Patient Information -->
 
         <div class="patient-info">
@@ -290,11 +334,43 @@ Analyzing Report...
         <hr>
         <br>
 
+        <!-- Analyzed Biomarkers Table -->
+        <div class="biomarkers-section" id="biomarkersSection" style="display:none;">
+
+            <h3>Analyzed Lab Biomarkers & Test Parameters</h3>
+
+            <div class="biomarker-pills">
+                <span class="pill pill-total" id="pillTotalTests">Total Tests: 0</span>
+                <span class="pill pill-normal" id="pillNormalTests">Within Normal: 0</span>
+                <span class="pill pill-abnormal" id="pillAbnormalTests">Abnormal: 0</span>
+            </div>
+
+            <div class="biomarkers-table-wrapper">
+                <table class="biomarkers-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter / Investigation</th>
+                            <th>Observed Value</th>
+                            <th>Reference Range</th>
+                            <th>Clinical Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="biomarkersTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <br id="biomarkersBr" style="display:none;">
+        <hr id="biomarkersHr" style="display:none;">
+        <br id="biomarkersBr2" style="display:none;">
+
         <!-- Problems -->
 
         <div class="problems">
 
-            <h3>Detected Problems</h3>
+            <h3>Detected Clinical Findings</h3>
 
             <ul id="problemList">
 
@@ -334,6 +410,12 @@ Analyzing Report...
 
             <p id="doctorName">-</p>
 
+            <div id="doctorAction" style="margin-top:15px; display:none;">
+                <a id="findDoctorBtn" href="doctor.html" class="btn-find-specialist">
+                    👨‍⚕️ View <span id="specialistBtnLabel">Doctors</span> in Your Area →
+                </a>
+            </div>
+
         </div>
 
         <br>
@@ -354,7 +436,9 @@ Analyzing Report...
 
         </div>
 
-    </div>
+        </div><!-- end aiAnalysisView -->
+
+    </div><!-- end result-card -->
 
 </section>
 <!-- ================= FOOTER ================= -->
@@ -394,15 +478,73 @@ function showPatientForm() {
     document.getElementById("patientForm").style.display = "block";
 }
 
-async function uploadReport() {
+function switchResultView(view) {
+    const aiView = document.getElementById("aiAnalysisView");
+    const docView = document.getElementById("documentViewCard");
+    const tabAi = document.getElementById("tabBtnAi");
+    const tabDoc = document.getElementById("tabBtnDoc");
 
+    if (view === 'doc') {
+        aiView.style.display = "none";
+        docView.style.display = "block";
+        tabAi.classList.remove("active");
+        tabDoc.classList.add("active");
+    } else {
+        aiView.style.display = "block";
+        docView.style.display = "none";
+        tabAi.classList.add("active");
+        tabDoc.classList.remove("active");
+    }
+}
+
+async function quickLoadDemo(type) {
+    let name = document.getElementById("patientNameInput").value.trim();
+    if (!name) {
+        name = (type === 'metabolic') ? "Rajesh Verma" : "Prateek";
+    }
+    let age = document.getElementById("patientAgeInput").value.trim();
+    if (!age) {
+        age = (type === 'metabolic') ? "54" : "23";
+    }
+    let gender = document.getElementById("patientGenderInput").value || "Male";
+
+    // Auto-populate inputs
+    document.getElementById("patientNameInput").value = name;
+    document.getElementById("patientAgeInput").value = age;
+    document.getElementById("patientGenderInput").value = gender;
+    document.getElementById("patientForm").style.display = "block";
+
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("loadingText").innerText = 
+        type === 'metabolic' ? "Analyzing Demo Metabolic Report (Diabetic & Renal Panel)..." : "Analyzing Demo CBC Blood Report...";
+
+    try {
+        const url = `/api/demo-report?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}&age=${encodeURIComponent(age)}&gender=${encodeURIComponent(gender)}`;
+        const response = await fetch(url);
+        const text = await response.text();
+        document.getElementById("loading").style.display = "none";
+
+        const clean = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+        const data = JSON.parse(clean);
+
+        const fileName = (type === 'metabolic') ? "Demo_Abnormal_Metabolic_Report.pdf" : "Demo_Blood_Report_CBC.pdf";
+        renderAnalysisResults(data, name, age, gender, fileName);
+
+    } catch (err) {
+        document.getElementById("loading").style.display = "none";
+        alert("Error loading demo report: " + err.message);
+        console.error(err);
+    }
+}
+
+async function uploadReport() {
     const file = document.getElementById("reportFile").files[0];
     const name = document.getElementById("patientNameInput").value.trim();
     const age = document.getElementById("patientAgeInput").value.trim();
     const gender = document.getElementById("patientGenderInput").value;
 
     if (!file) {
-        alert("Please upload a report.");
+        alert("Please upload a report file or click one of the 1-Click Demo buttons above!");
         return;
     }
 
@@ -422,6 +564,7 @@ async function uploadReport() {
     }
 
     document.getElementById("loading").style.display = "block";
+    document.getElementById("loadingText").innerText = "Analyzing Report with MediScan AI...";
 
     const formData = new FormData();
     formData.append("file", file);
@@ -430,199 +573,223 @@ async function uploadReport() {
     formData.append("gender", gender);
 
     try {
-
         const response = await fetch("/api/upload", {
             method: "POST",
             body: formData
         });
 
-       let text = await response.text();
+        let text = await response.text();
+        document.getElementById("loading").style.display = "none";
 
-document.getElementById("loading").style.display = "none";
+        text = text.replace(/```json/gi, "").replace(/```/g, "").trim();
 
-// Remove markdown if Groq returns ```json ... ```
-text = text
-    .replace(/```json/gi, "")
-    .replace(/```/g, "")
-    .trim();
-
-let data;
-
-try {
-
-    data = JSON.parse(text);
-
-} catch (e) {
-
-    console.error("Invalid JSON:", text);
-
-    document.getElementById("summary").innerHTML =
-        "<span style='color:red;'>Invalid AI Response</span><br><pre>" +
-        text +
-        "</pre>";
-
-    return;
-}
-
-        if (data.error) {
-
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error("Invalid JSON:", text);
             document.getElementById("summary").innerHTML =
-                "<span style='color:red;'>" + data.error + "</span>";
-
+                "<span style='color:red;'>Invalid AI Response</span><br><pre>" + text + "</pre>";
             return;
         }
 
-        //--------------------------
-        // Patient Information
-        //--------------------------
-
-        document.getElementById("patientName").innerText = name;
-        document.getElementById("patientAge").innerText = age;
-        document.getElementById("patientGender").innerText = gender;
-
-        document.getElementById("reportType").innerText =
-            data.reportType || file.name;
-
-        document.getElementById("hospitalName").innerText =
-            data.hospital || "AI Analysis";
-
-        document.getElementById("reportDate").innerText =
-            new Date().toLocaleDateString();
-
-        //--------------------------
-        // Summary
-        //--------------------------
-
-        document.getElementById("summary").innerText =
-            data.summary || "No summary available.";
-
-        //--------------------------
-        // Risk Level
-        //--------------------------
-
-        let risk = data.riskLevel || "Unknown";
-
-        let color = "green";
-        let icon = "🟢";
-
-        if (risk.toLowerCase() === "moderate") {
-            color = "orange";
-            icon = "🟡";
+        if (data.error) {
+            document.getElementById("summary").innerHTML =
+                "<span style='color:red;'>" + data.error + "</span>";
+            return;
         }
 
-        if (risk.toLowerCase() === "high") {
-            color = "red";
-            icon = "🔴";
-        }
+        renderAnalysisResults(data, name, age, gender, file.name);
 
-        if (risk.toLowerCase() === "critical") {
-            color = "darkred";
-            icon = "🚨";
-        }
-
-        const riskBox = document.getElementById("riskLevel");
-
-        riskBox.innerHTML = icon + " " + risk;
-        riskBox.style.color = color;
-
-        //--------------------------
-        // Problems
-        //--------------------------
-
-        let problemHTML = "";
-
-        if (Array.isArray(data.problems)) {
-
-            data.problems.forEach(function(problem){
-
-                problemHTML += "<li>⚠ " + problem + "</li>";
-
-            });
-
-        } else {
-
-            problemHTML = "<li>No problems detected.</li>";
-
-        }
-
-        document.getElementById("problemList").innerHTML = problemHTML;
-
-        //--------------------------
-        // Recommendations
-        //--------------------------
-
-        let recHTML = "";
-
-        if (Array.isArray(data.recommendations)) {
-
-            data.recommendations.forEach(function(rec){
-
-                recHTML += "<li>✅ " + rec + "</li>";
-
-            });
-
-        } else {
-
-            recHTML = "<li>Consult your doctor.</li>";
-
-        }
-
-        document.getElementById("recommendList").innerHTML = recHTML;
-
-        //--------------------------
-        // Specialist
-        //--------------------------
-
-        document.getElementById("doctorName").innerText =
-            data.specialist || "General Physician";
-
-        //--------------------------
-        // Emergency
-        //--------------------------
-
-        const emergencyBox =
-            document.getElementById("emergencyStatus");
-
-        let emergency =
-            data.emergencyStatus || "Normal";
-
-        emergencyBox.innerText = emergency;
-
-        if (
-            emergency.toLowerCase().includes("critical") ||
-            emergency.toLowerCase().includes("emergency")
-        ) {
-
-            emergencyBox.style.color = "red";
-            emergencyBox.style.fontWeight = "bold";
-
-        } else {
-
-            emergencyBox.style.color = "green";
-
-        }
-
-        //--------------------------
-        // Scroll to Results
-        //--------------------------
-
-        document.querySelector(".analysis-result")
-        .scrollIntoView({
-            behavior: "smooth"
-        });
-
-    }
-
-    catch (err) {
-
+    } catch (err) {
         document.getElementById("loading").style.display = "none";
-
         document.getElementById("summary").innerHTML =
             "<span style='color:red;'>Unable to connect to Spring Boot Server.</span>";
-
         console.error(err);
     }
+}
 
+function renderAnalysisResults(data, name, age, gender, reportFileName) {
+    // 1. Patient Information
+    document.getElementById("patientName").innerText = name;
+    document.getElementById("patientAge").innerText = age;
+    document.getElementById("patientGender").innerText = gender;
+    document.getElementById("reportType").innerText = data.reportType || reportFileName;
+    document.getElementById("hospitalName").innerText = data.hospital || "MediScan AI Diagnostic Services";
+    document.getElementById("reportDate").innerText = new Date().toLocaleDateString();
+
+    // 2. Summary
+    document.getElementById("summary").innerText = data.summary || "No summary available.";
+
+    // 3. Risk Level
+    let risk = data.riskLevel || "Unknown";
+    let color = "green";
+    let icon = "🟢";
+
+    if (risk.toLowerCase() === "moderate") {
+        color = "#e67e22";
+        icon = "🟡";
+    }
+    if (risk.toLowerCase() === "high") {
+        color = "#e74c3c";
+        icon = "🔴";
+    }
+    if (risk.toLowerCase() === "critical") {
+        color = "#8b0000";
+        icon = "🚨";
+    }
+
+    const riskBox = document.getElementById("riskLevel");
+    riskBox.innerHTML = icon + " " + risk;
+    riskBox.style.color = color;
+
+    // 4. Biomarkers Table
+    const biomarkersSection = document.getElementById("biomarkersSection");
+    const biomarkersBody = document.getElementById("biomarkersTableBody");
+    const bBr = document.getElementById("biomarkersBr");
+    const bHr = document.getElementById("biomarkersHr");
+    const bBr2 = document.getElementById("biomarkersBr2");
+
+    if (Array.isArray(data.tests) && data.tests.length > 0) {
+        biomarkersSection.style.display = "block";
+        if (bBr) bBr.style.display = "block";
+        if (bHr) bHr.style.display = "block";
+        if (bBr2) bBr2.style.display = "block";
+
+        let rowsHtml = "";
+        let normalCount = 0;
+        let abnormalCount = 0;
+
+        data.tests.forEach(function(t) {
+            let status = (t.status || "Normal").toLowerCase();
+            let flag = (t.flag || "NORMAL").toUpperCase();
+            let badgeClass = "badge-normal";
+            let badgeText = "🟢 Normal";
+
+            if (flag === "HIGH" || status === "high") {
+                badgeClass = "badge-high";
+                badgeText = "🔴 High";
+                abnormalCount++;
+            } else if (flag === "LOW" || status === "low") {
+                badgeClass = "badge-low";
+                badgeText = "🟡 Low";
+                abnormalCount++;
+            } else if (flag === "CRITICAL" || status === "critical") {
+                badgeClass = "badge-critical";
+                badgeText = "🚨 Critical";
+                abnormalCount++;
+            } else {
+                normalCount++;
+            }
+
+            rowsHtml += `
+                <tr>
+                    <td class="param-name"><strong>${t.testName}</strong></td>
+                    <td class="param-value">${t.value} <span class="param-unit">${t.unit || ""}</span></td>
+                    <td class="param-ref">${t.referenceRange || "Standard"}</td>
+                    <td><span class="biomarker-badge ${badgeClass}">${badgeText}</span></td>
+                </tr>
+            `;
+        });
+
+        biomarkersBody.innerHTML = rowsHtml;
+        document.getElementById("pillTotalTests").innerText = "Total Tests: " + data.tests.length;
+        document.getElementById("pillNormalTests").innerText = "Within Normal: " + normalCount;
+        document.getElementById("pillAbnormalTests").innerText = "Abnormal: " + abnormalCount;
+    } else {
+        biomarkersSection.style.display = "none";
+        if (bBr) bBr.style.display = "none";
+        if (bHr) bHr.style.display = "none";
+        if (bBr2) bBr2.style.display = "none";
+    }
+
+    // 5. Problems / Clinical Concerns (Reassuring Green Card if zero)
+    let problemHTML = "";
+    const rawProblems = Array.isArray(data.problems) ? data.problems : [];
+    const realProblems = rawProblems.filter(function(p) {
+        let lower = (p || "").toLowerCase();
+        return !lower.includes("no significant abnormal") && !lower.includes("no report uploaded");
+    });
+
+    if (realProblems.length > 0) {
+        realProblems.forEach(function(problem){
+            problemHTML += "<li class='problem-abnormal'><span class='badge-problem-tag'>⚠ CLINICAL CONCERN</span> " + problem + "</li>";
+        });
+    } else {
+        problemHTML = `
+            <li class="all-normal-card">
+                <div class="normal-card-icon">✅</div>
+                <div class="normal-card-content">
+                    <strong>All Evaluated Biomarkers Within Healthy Range</strong>
+                    <p>No pathological disorders, abnormal clinical findings, or acute health risks were detected in this report.</p>
+                </div>
+            </li>
+        `;
+    }
+    document.getElementById("problemList").innerHTML = problemHTML;
+
+    // 6. Recommendations
+    let recHTML = "";
+    if (Array.isArray(data.recommendations) && data.recommendations.length > 0) {
+        data.recommendations.forEach(function(rec){
+            recHTML += "<li>✅ " + rec + "</li>";
+        });
+    } else {
+        recHTML = "<li>✅ Continue regular preventive health checkups and balanced wellness.</li>";
+    }
+    document.getElementById("recommendList").innerHTML = recHTML;
+
+    // 7. Specialist & Find Doctors
+    let specialist = data.specialist || "General Physician";
+    document.getElementById("doctorName").innerText = specialist;
+
+    const doctorAction = document.getElementById("doctorAction");
+    if (doctorAction) {
+        doctorAction.style.display = "block";
+        const btn = document.getElementById("findDoctorBtn");
+        if (btn) {
+            btn.href = "doctor.html?specialization=" + encodeURIComponent(specialist);
+            document.getElementById("specialistBtnLabel").innerText = specialist;
+        }
+    }
+
+    // 8. Emergency Status
+    const emergencyBox = document.getElementById("emergencyStatus");
+    let emergency = data.emergencyStatus || "Normal";
+    emergencyBox.innerText = emergency;
+
+    if (
+        emergency.toLowerCase().includes("critical") ||
+        emergency.toLowerCase().includes("emergency")
+    ) {
+        emergencyBox.style.color = "red";
+        emergencyBox.style.fontWeight = "bold";
+    } else {
+        emergencyBox.style.color = "green";
+    }
+
+    // 9. Original Document Viewer Display
+    if (data.rawReportText) {
+        document.getElementById("rawReportDisplay").innerText = data.rawReportText;
+        document.getElementById("docReportTitle").innerText = data.reportType || "Diagnostic Laboratory Report";
+
+        const downloadBtn = document.getElementById("btnDownloadCurrentPdf");
+        if (data.reportType && data.reportType.toLowerCase().includes("metabolic")) {
+            downloadBtn.href = "/samples/Demo_Abnormal_Metabolic_Report.pdf";
+            downloadBtn.download = "Demo_Abnormal_Metabolic_Report.pdf";
+        } else {
+            downloadBtn.href = "/samples/Demo_Blood_Report_CBC.pdf";
+            downloadBtn.download = "Demo_Blood_Report_CBC.pdf";
+        }
+    }
+
+    // Reset view to AI analysis tab
+    switchResultView('ai');
+
+    // 10. Smooth Scroll to Results
+    document.querySelector(".analysis-result").scrollIntoView({
+        behavior: "smooth"
+    });
 }
 
 </script>

@@ -110,8 +110,12 @@ Medical Report:
                 content = content.trim();
 
                 // Validate JSON before returning
-                new Gson().fromJson(content, JsonObject.class);
-                return content;
+                JsonObject parsed = new Gson().fromJson(content, JsonObject.class);
+                if (!parsed.has("tests") || parsed.getAsJsonArray("tests").isEmpty()) {
+                    List<LabResult> labs = LabReportParser.extractLabValues(reportText);
+                    parsed.add("tests", buildTestsJsonArray(labs));
+                }
+                return new Gson().toJson(parsed);
             }
         } catch (Exception e) {
             System.err.println("[GroqService] Groq call failed (" + e.getMessage() + "). Engaging intelligent clinical fallback engine.");
@@ -160,6 +164,7 @@ Medical Report:
             if (val == Double.MIN_VALUE) continue;
 
             String nameLower = name.toLowerCase();
+            String flag = lab.getFlag() != null ? lab.getFlag() : "NORMAL";
 
             if (nameLower.contains("potassium") || nameLower.contains("k+")) {
                 if (val > 5.5) {
@@ -249,27 +254,56 @@ Medical Report:
             } else if (nameLower.contains("hemoglobin") || nameLower.contains("hgb")) {
                 if (val < 9.0) {
                     hasHigh = true;
-                    problems.add(String.format("Moderate Anemia (Hemoglobin %s %s, Ref: 12.0-16.0): Substantially reduced oxygen-carrying capacity.", lab.getValue(), lab.getUnit()));
+                    problems.add(String.format("Moderate Anemia (Hemoglobin %s %s, Ref: 13.0-17.0): Substantially reduced oxygen-carrying capacity.", lab.getValue(), lab.getUnit()));
                     recommendations.add("Investigate iron studies, ferritin, B12, and potential occult blood loss.");
                     specialist = "Hematologist";
-                } else if (val < 12.0) {
+                } else if (val < 13.0) {
                     hasModerate = true;
-                    problems.add(String.format("Mild Anemia (Hemoglobin %s %s, Ref: 12.0-16.0): Slightly below normal limits.", lab.getValue(), lab.getUnit()));
+                    problems.add(String.format("Mild Anemia (Hemoglobin %s %s, Ref: 13.0-17.0): Slightly below normal limits.", lab.getValue(), lab.getUnit()));
                     recommendations.add("Consider iron-rich nutrition and clinical evaluation of fatigue symptoms.");
+                    specialist = "Hematologist";
+                } else if (val > 18.0) {
+                    hasModerate = true;
+                    problems.add(String.format("Elevated Hemoglobin (%s %s, Ref: 13.0-17.0): Suggestive of hemoconcentration or polycythemia.", lab.getValue(), lab.getUnit()));
+                    specialist = "Hematologist";
                 } else {
                     normalFindings.add(String.format("Hemoglobin (%s %s) is within healthy limits.", lab.getValue(), lab.getUnit()));
                 }
-            } else if (nameLower.contains("wbc") || nameLower.contains("white blood cell")) {
-                if (val > 14.0) {
+            } else if (nameLower.contains("wbc") || nameLower.contains("white blood cell") || nameLower.contains("leukocyte")) {
+                double wbcNorm = val > 50.0 ? val / 1000.0 : val;
+                if (wbcNorm > 14.0) {
                     hasHigh = true;
-                    problems.add(String.format("Leukocytosis (WBC %s %s, Ref: 4.0-11.0): Elevated white blood cells suggestive of active infection or systemic inflammation.", lab.getValue(), lab.getUnit()));
+                    problems.add(String.format("Leukocytosis (WBC %s %s, Ref: 4,000-11,000): Elevated white blood cells suggestive of active infection or systemic inflammation.", lab.getValue(), lab.getUnit()));
                     recommendations.add("Clinical assessment for potential bacterial or viral infectious etiology.");
                     specialist = "General Physician";
-                } else if (val < 3.5) {
+                } else if (wbcNorm > 11.0) {
                     hasModerate = true;
-                    problems.add(String.format("Leukopenia (WBC %s %s, Ref: 4.0-11.0): Below normal immune cell count.", lab.getValue(), lab.getUnit()));
+                    problems.add(String.format("Mild Leukocytosis (WBC %s %s, Ref: 4,000-11,000): Mildly elevated immune cell count.", lab.getValue(), lab.getUnit()));
+                    specialist = "General Physician";
+                } else if (wbcNorm < 3.5) {
+                    hasModerate = true;
+                    problems.add(String.format("Leukopenia (WBC %s %s, Ref: 4,000-11,000): Below normal immune cell count.", lab.getValue(), lab.getUnit()));
+                    specialist = "Hematologist";
                 } else {
                     normalFindings.add(String.format("White Blood Cell count (%s %s) is normal.", lab.getValue(), lab.getUnit()));
+                }
+            } else if (nameLower.contains("platelet") || nameLower.contains("plt")) {
+                double pltNorm = val > 1000.0 ? val / 1000.0 : val;
+                if (pltNorm < 100.0) {
+                    hasHigh = true;
+                    problems.add(String.format("Thrombocytopenia (Platelets %s %s, Ref: 150,000-410,000): Low platelet count increasing bleeding risk.", lab.getValue(), lab.getUnit()));
+                    recommendations.add("Avoid NSAIDs and contact hematologist for evaluation.");
+                    specialist = "Hematologist";
+                } else if (pltNorm < 150.0) {
+                    hasModerate = true;
+                    problems.add(String.format("Mild Thrombocytopenia (Platelets %s %s, Ref: 150,000-410,000): Platelets slightly below reference.", lab.getValue(), lab.getUnit()));
+                    specialist = "Hematologist";
+                } else if (pltNorm > 450.0) {
+                    hasModerate = true;
+                    problems.add(String.format("Thrombocytosis (Platelets %s %s, Ref: 150,000-410,000): Elevated platelet count.", lab.getValue(), lab.getUnit()));
+                    specialist = "Hematologist";
+                } else {
+                    normalFindings.add(String.format("Platelet Count (%s %s) is within normal range.", lab.getValue(), lab.getUnit()));
                 }
             } else if (nameLower.contains("cholesterol")) {
                 if (val >= 240) {
@@ -298,6 +332,16 @@ Medical Report:
                     problems.add(String.format("Elevated Blood Urea Nitrogen (%s %s, Ref: 7-20): May reflect dehydration or reduced renal clearance.", lab.getValue(), lab.getUnit()));
                 } else {
                     normalFindings.add(String.format("BUN (%s %s) is normal.", lab.getValue(), lab.getUnit()));
+                }
+            } else {
+                if ("HIGH".equalsIgnoreCase(flag)) {
+                    hasModerate = true;
+                    problems.add(String.format("Elevated %s (%s %s, Ref: %s).", lab.getTestName(), lab.getValue(), lab.getUnit(), lab.getReferenceRange()));
+                } else if ("LOW".equalsIgnoreCase(flag)) {
+                    hasModerate = true;
+                    problems.add(String.format("Low %s (%s %s, Ref: %s).", lab.getTestName(), lab.getValue(), lab.getUnit(), lab.getReferenceRange()));
+                } else {
+                    normalFindings.add(String.format("%s (%s %s) is within healthy limits.", lab.getTestName(), lab.getValue(), lab.getUnit()));
                 }
             }
         }
@@ -336,39 +380,41 @@ Medical Report:
 
         // Default recommendations if none generated
         if (recommendations.isEmpty()) {
-            recommendations.add("Schedule a routine review with your primary care physician to discuss findings.");
-            recommendations.add("Maintain balanced hydration and follow general preventative health guidelines.");
-            recommendations.add("Retain a copy of this diagnostic report for your personal medical records.");
-        }
-
-        // If no problems found
-        if (problems.isEmpty()) {
-            problems.add("No significant abnormal clinical findings or pathological markers were detected in the provided report.");
+            if (problems.isEmpty()) {
+                recommendations.add("All evaluated biomarkers are within normal healthy ranges. Continue routine preventive wellness checks.");
+                recommendations.add("Maintain balanced hydration, nutritious diet, and regular physical activity.");
+                recommendations.add("Retain a copy of this diagnostic report in your medical file for baseline reference.");
+            } else {
+                recommendations.add("Schedule a review with your physician to discuss identified test variations.");
+                recommendations.add("Maintain balanced hydration and follow prescribed clinical guidance.");
+                recommendations.add("Retain a copy of this diagnostic report for your personal medical records.");
+            }
         }
 
         // Build comprehensive patient summary
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("This comprehensive medical report evaluation for %s provides a thorough overview of the submitted diagnostic findings. ", patientName));
-
-        if ("Critical".equals(riskLevel)) {
-            sb.append("Urgent clinical attention is warranted due to one or more significantly abnormal biomarkers. ");
-        } else if ("High".equals(riskLevel)) {
-            sb.append("Important diagnostic elevations were identified that require timely clinical follow-up. ");
-        } else if ("Moderate".equals(riskLevel)) {
-            sb.append("Mild-to-moderate clinical variations were noted that should be reviewed with your healthcare provider. ");
+        if (problems.isEmpty()) {
+            sb.append(String.format("Evaluation of the diagnostic medical report for %s indicates that all analyzed parameters are within normal clinical reference ranges. ", patientName));
+            if (!labs.isEmpty()) {
+                sb.append(String.format("A total of %d laboratory biomarkers (including %s, %s, and other key parameters) were evaluated and confirmed healthy. ",
+                        labs.size(), labs.get(0).getTestName(), labs.size() > 1 ? labs.get(1).getTestName() : "cellular indices"));
+            }
+            sb.append("No acute pathological disorders, abnormal cell counts, or clinical risks were detected. Overall physiological indicators demonstrate healthy baseline stability. A routine wellness consultation with a General Physician is recommended for preventive care.");
         } else {
-            sb.append("The evaluated indicators demonstrate predominantly stable and reassuring health parameters. ");
-        }
-
-        if (!problems.isEmpty()) {
+            sb.append(String.format("This comprehensive medical report evaluation for %s identifies specific parameters that warrant clinical attention. ", patientName));
+            if ("Critical".equals(riskLevel)) {
+                sb.append("Urgent clinical attention is warranted due to one or more significantly abnormal biomarkers. ");
+            } else if ("High".equals(riskLevel)) {
+                sb.append("Important diagnostic elevations were identified that require timely clinical follow-up. ");
+            } else if ("Moderate".equals(riskLevel)) {
+                sb.append("Mild-to-moderate clinical variations were noted that should be reviewed with your healthcare provider. ");
+            }
             sb.append("Key findings include: ").append(String.join("; ", problems)).append(". ");
+            if (!normalFindings.isEmpty()) {
+                sb.append("Reassuring normal markers observed: ").append(String.join(", ", normalFindings.subList(0, Math.min(3, normalFindings.size())))).append(". ");
+            }
+            sb.append(String.format("It is recommended to consult a %s to review these diagnostic results in the context of your overall medical history.", specialist));
         }
-
-        if (!normalFindings.isEmpty()) {
-            sb.append("Reassuring normal markers observed: ").append(String.join(", ", normalFindings.subList(0, Math.min(3, normalFindings.size())))).append(". ");
-        }
-
-        sb.append(String.format("It is recommended to consult a %s to review these diagnostic results in the context of your overall medical history.", specialist));
 
         JsonObject out = new JsonObject();
         out.addProperty("summary", sb.toString().trim());
@@ -388,7 +434,32 @@ Medical Report:
         out.addProperty("reportType", "Diagnostic Laboratory Report");
         out.addProperty("hospital", "MediScan AI Diagnostic Services");
 
+        // Structured lab tests array
+        out.add("tests", buildTestsJsonArray(labs));
+
         return new Gson().toJson(out);
+    }
+
+    private JsonArray buildTestsJsonArray(List<LabResult> labs) {
+        JsonArray testsArr = new JsonArray();
+        if (labs == null) return testsArr;
+
+        for (LabResult lab : labs) {
+            JsonObject tObj = new JsonObject();
+            tObj.addProperty("testName", lab.getTestName());
+            tObj.addProperty("value", lab.getValue());
+            tObj.addProperty("unit", lab.getUnit() != null ? lab.getUnit() : "");
+            tObj.addProperty("referenceRange", lab.getReferenceRange() != null ? lab.getReferenceRange() : "Standard");
+            String flag = lab.getFlag() != null ? lab.getFlag() : "NORMAL";
+            tObj.addProperty("flag", flag);
+            String status = "Normal";
+            if ("HIGH".equalsIgnoreCase(flag)) status = "High";
+            else if ("LOW".equalsIgnoreCase(flag)) status = "Low";
+            else if ("CRITICAL".equalsIgnoreCase(flag)) status = "Critical";
+            tObj.addProperty("status", status);
+            testsArr.add(tObj);
+        }
+        return testsArr;
     }
 
     private double parseNumeric(String val) {

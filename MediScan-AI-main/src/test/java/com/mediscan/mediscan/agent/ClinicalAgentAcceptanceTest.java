@@ -383,4 +383,70 @@ class ClinicalAgentAcceptanceTest {
         assertEquals("Endocrinologist", obj.get("specialist").getAsString(), "Marked hyperglycemia must recommend Endocrinologist");
         assertTrue(obj.get("riskLevel").getAsString().matches("(?i)High|Critical"));
     }
+
+    /**
+     * Test normal Complete Blood Count (CBC) report extraction and evaluation.
+     * Proves:
+     * - All 14 CBC biomarkers are extracted (with commas and parentheses handled).
+     * - All 14 biomarkers are flagged as NORMAL.
+     * - Problems array is empty [] (no confusing warning box).
+     * - Risk level is Low.
+     * - Structured tests array is populated.
+     */
+    @Test
+    void testNormalCBCReport_ExtractsAll14BiomarkersAndZeroProblems() {
+        GroqService groqService = new GroqService();
+        String cbcReport = """
+                DEMO COMPLETE BLOOD COUNT (CBC) REPORT
+                SYNTHETIC SAMPLE - NOT A REAL MEDICAL REPORT
+                Patient Name Demo Patient Age / Sex 25 / Male
+                Patient ID DEMO-001 Report Date 12-Sep-2026
+                Specimen Whole Blood (EDTA) Status Sample
+                Investigation Result Unit Reference Range
+                Hemoglobin (Hb) 14.2 g/dL 13.0 - 17.0
+                RBC Count 4.8 million/cumm 4.5 - 5.5
+                Hematocrit (PCV) 43 % 40 - 50
+                MCV 89 fL 83 - 101
+                MCH 29.6 pg 27 - 32
+                MCHC 33.2 g/dL 31.5 - 34.5
+                RDW 13.1 % 11.6 - 14.0
+                Total WBC Count 7,200 /cumm 4,000 - 11,000
+                Neutrophils 58 % 40 - 80
+                Lymphocytes 34 % 20 - 40
+                Eosinophils 3 % 1 - 6
+                Monocytes 4 % 2 - 10
+                Basophils 1 % 0 - 2
+                Platelet Count 245,000 /cumm 150,000 - 410,000
+                """;
+
+        String jsonOutput = groqService.analyze(cbcReport);
+        assertNotNull(jsonOutput);
+
+        com.google.gson.JsonObject obj = new com.google.gson.Gson().fromJson(jsonOutput, com.google.gson.JsonObject.class);
+        assertNotNull(obj);
+
+        assertEquals("Low", obj.get("riskLevel").getAsString());
+        assertEquals("General Physician", obj.get("specialist").getAsString());
+
+        com.google.gson.JsonArray problems = obj.getAsJsonArray("problems");
+        assertNotNull(problems);
+        assertEquals(0, problems.size(), "Normal CBC report must have 0 problems detected (not false warnings)");
+
+        com.google.gson.JsonArray tests = obj.getAsJsonArray("tests");
+        assertNotNull(tests);
+        assertEquals(14, tests.size(), "Must extract all 14 CBC test biomarkers");
+
+        for (int i = 0; i < tests.size(); i++) {
+            com.google.gson.JsonObject t = tests.get(i).getAsJsonObject();
+            assertEquals("NORMAL", t.get("flag").getAsString(), "Test " + t.get("testName").getAsString() + " must be NORMAL");
+            assertEquals("Normal", t.get("status").getAsString());
+        }
+
+        System.out.println("=== NORMAL CBC TEST RESULT ===");
+        System.out.println("Extracted Tests: " + tests.size());
+        System.out.println("Problems: " + problems);
+        System.out.println("Risk Level: " + obj.get("riskLevel").getAsString());
+        System.out.println("Summary: " + obj.get("summary").getAsString());
+        System.out.println("==============================");
+    }
 }

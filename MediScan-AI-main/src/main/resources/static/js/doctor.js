@@ -112,8 +112,61 @@ function getSelectedSpecialization() {
 }
 
 // ================================
+// ================================
+// Location Badge Helpers
+// ================================
+
+function showLocationBadge(text) {
+    let badge = document.getElementById("locationStatusBadge");
+    let textElem = document.getElementById("locationStatusText");
+    if (badge && textElem) {
+        textElem.textContent = "📍 Detected Location: " + text;
+        badge.style.display = "inline-flex";
+    }
+}
+
+function hideLocationBadge() {
+    let badge = document.getElementById("locationStatusBadge");
+    if (badge) {
+        badge.style.display = "none";
+    }
+}
+
+function updateLocationDropdowns(detectedState, detectedCity) {
+    if (!detectedCity) return;
+    let stateSelect = document.getElementById("state");
+    let citySelect = document.getElementById("city");
+    if (!stateSelect || !citySelect) return;
+
+    let targetState = detectedState;
+    if (!targetState || !locationData[targetState]) {
+        for (let s in locationData) {
+            if (locationData[s].some(c => c.toLowerCase() === detectedCity.toLowerCase())) {
+                targetState = s;
+                break;
+            }
+        }
+    }
+
+    if (targetState && locationData[targetState]) {
+        stateSelect.value = targetState;
+        populateCities();
+
+        // Select city
+        for (let i = 0; i < citySelect.options.length; i++) {
+            let optVal = citySelect.options[i].value;
+            if (optVal.toLowerCase() === detectedCity.toLowerCase() ||
+                detectedCity.toLowerCase().includes(optVal.toLowerCase()) ||
+                optVal.toLowerCase().includes(detectedCity.toLowerCase())) {
+                citySelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+}
+
+// ================================
 // Search Doctors by Dropdown
-// (FIX: now sends state too, since city names repeat across states)
 // ================================
 
 function searchDoctors() {
@@ -121,17 +174,19 @@ function searchDoctors() {
     let city = document.getElementById("city").value;
     let specialization = getSelectedSpecialization();
 
-    if (!city) {
+    if (!city || city === "Select City") {
         alert("Please select a city.");
         return;
     }
+
+    hideLocationBadge();
 
     let doctorList = document.getElementById("doctorList");
     doctorList.innerHTML = "<h2 style='text-align:center;'>Searching...</h2>";
 
     let params = new URLSearchParams();
     params.append("city", city);
-    if (state) params.append("state", state);
+    if (state && state !== "Select State") params.append("state", state);
     if (specialization) params.append("specialization", specialization);
 
     fetch("/api/doctors/search?" + params.toString())
@@ -208,26 +263,38 @@ function showDoctors(position) {
         </div>
     `;
 
-    let params = new URLSearchParams();
-    params.append("lat", lat);
-    params.append("lon", lon);
-    if (specialization) params.append("specialization", specialization);
-
-    fetch("/api/doctors/nearby?" + params.toString())
-        .then(response => {
-            if (!response.ok) throw new Error("Server error: " + response.status);
-            return response.json();
+    // Detect location name & synchronize dropdowns
+    fetch(`/api/doctors/detect-location?lat=${lat}&lon=${lon}`)
+        .then(response => response.json())
+        .then(loc => {
+            if (loc && loc.city) {
+                updateLocationDropdowns(loc.state, loc.city);
+                showLocationBadge(loc.displayName || `${loc.city}, ${loc.state}`);
+            }
         })
-        .then(data => displayDoctors(data))
-        .catch(error => {
-            console.error("Error fetching nearby doctors:", error);
-            doctorList.innerHTML = `
-                <div style="text-align:center; padding:30px 20px; background:#fff; border-radius:14px; box-shadow:0 4px 15px rgba(0,0,0,0.06); max-width:600px; margin:20px auto;">
-                    <h3 style="color:#e63946; margin-bottom:10px;">⚠️ Unable to Fetch Nearby Doctors</h3>
-                    <p style="color:#555; margin-bottom:18px;">A network timeout occurred while querying nearby medical centers. Please try selecting your city manually.</p>
-                    <button onclick="scrollToSearch()" style="background:#0d6efd; color:#fff; padding:10px 24px; border-radius:25px; border:none; cursor:pointer; font-weight:600;">Search by City Instead</button>
-                </div>
-            `;
+        .catch(err => console.warn("Location detection error:", err))
+        .finally(() => {
+            let params = new URLSearchParams();
+            params.append("lat", lat);
+            params.append("lon", lon);
+            if (specialization) params.append("specialization", specialization);
+
+            fetch("/api/doctors/nearby?" + params.toString())
+                .then(response => {
+                    if (!response.ok) throw new Error("Server error: " + response.status);
+                    return response.json();
+                })
+                .then(data => displayDoctors(data))
+                .catch(error => {
+                    console.error("Error fetching nearby doctors:", error);
+                    doctorList.innerHTML = `
+                        <div style="text-align:center; padding:30px 20px; background:#fff; border-radius:14px; box-shadow:0 4px 15px rgba(0,0,0,0.06); max-width:600px; margin:20px auto;">
+                            <h3 style="color:#e63946; margin-bottom:10px;">⚠️ Unable to Fetch Nearby Doctors</h3>
+                            <p style="color:#555; margin-bottom:18px;">A network timeout occurred while querying nearby medical centers. Please try selecting your city manually.</p>
+                            <button onclick="scrollToSearch()" style="background:#0d6efd; color:#fff; padding:10px 24px; border-radius:25px; border:none; cursor:pointer; font-weight:600;">Search by City Instead</button>
+                        </div>
+                    `;
+                });
         });
 }
 

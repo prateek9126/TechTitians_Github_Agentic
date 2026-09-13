@@ -34,4 +34,13 @@ public class DoctorController {
 
         return doctorService.findNearbyDoctors(lat, lon, specialization);
     }
+
+    // Detect City and State from browser lat/lon coordinates
+    @GetMapping("/detect-location")
+    public java.util.Map<String, String> detectLocation(
+            @RequestParam double lat,
+            @RequestParam double lon) {
+
+        return doctorService.detectLocation(lat, lon);
+    }
 }
