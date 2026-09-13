@@ -205,7 +205,7 @@ class ClinicalAgentAcceptanceTest {
     void testValidationFailureThenReviseWorkflow() {
         FollowUpRecord badDraft = new FollowUpRecord();
         badDraft.setPatientId("PAT-101");
-        badDraft.setPatientName("John Doe");
+        badDraft.setPatientName("Robert Shayne");
         badDraft.setEncounterDate("2024-03-15");
         badDraft.setChiefComplaint("Persistent cough");
         badDraft.setHistoryOfPresentIllness("58-year-old male with lower respiratory symptoms.");
@@ -357,7 +357,7 @@ class ClinicalAgentAcceptanceTest {
     void testGroqService_FallbackAnalysisGeneratesValidReportJson() {
         GroqService groqService = new GroqService();
         String sampleReport = """
-                Name: John Doe
+                Name: Robert Shayne
                 Age: 52
                 Gender: Male
                 

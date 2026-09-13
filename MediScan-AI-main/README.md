@@ -69,7 +69,7 @@ http://localhost:8080/clinical-agent.html
 ```
 
 #### 3. Test the Scenarios via UI
-1. **Scenario 1 (Safety Escalation)**: Select **PAT-101 (John Doe)**. Click **"Run Autonomous Pipeline"**.
+1. **Scenario 1 (Safety Escalation)**: Select **PAT-101 (Robert Shayne)**. Click **"Run Autonomous Pipeline"**.
    - Notice the deliberate contradiction: EHR allergy list states `NKDA`, but ED clinical notes document a severe anaphylactoid reaction to Augmentin.
    - The agent detects this, queries `MedicationAllergyLookupService` and `ClinicalGuidelineRAGService`, blocks the proposed Augmentin prescription, and **escalates** the high-severity conflict for mandatory clinician review.
 2. **Scenario 2 (Mid-Session Adaptation)**: Select **PAT-102 (Maria Garcia)**. Click **"Run Autonomous Pipeline"**.
@@ -119,7 +119,7 @@ http://localhost:8080/clinical-agent.html
 }
 ```
 
-#### 2. Escalated Conflict Example (Patient PAT-101: John Doe)
+#### 2. Escalated Conflict Example (Patient PAT-101: Robert Shayne)
 ```json
 {
   "id": "CONF-1",

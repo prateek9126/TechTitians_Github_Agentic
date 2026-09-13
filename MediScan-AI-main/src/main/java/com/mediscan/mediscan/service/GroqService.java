@@ -24,41 +24,64 @@ public class GroqService {
     private final OkHttpClient client = new OkHttpClient();
 
     public String analyze(String reportText) {
+        return analyze(reportText, "Patient", "", "");
+    }
+
+    public String cleanAndExtractJson(String raw) {
+        if (raw == null) return "{}";
+        String content = raw.trim();
+        content = content.replace("```json", "");
+        content = content.replace("```JSON", "");
+        content = content.replace("```", "").trim();
+
+        int firstBrace = content.indexOf('{');
+        int lastBrace = content.lastIndexOf('}');
+        if (firstBrace != -1 && lastBrace > firstBrace) {
+            content = content.substring(firstBrace, lastBrace + 1).trim();
+        }
+        return content;
+    }
+
+    public String analyze(String reportText, String name, String age, String gender) {
         // 1. If API key is not configured or is a placeholder, engage intelligent clinical fallback analyzer
         if (apiKey == null || apiKey.isBlank() || apiKey.equalsIgnoreCase("demo_key") || apiKey.contains("${")) {
             System.out.println("[GroqService] Groq API key is not configured. Engaging intelligent clinical fallback engine.");
-            return fallbackAnalyze(reportText);
+            return fallbackAnalyze(reportText, name, age, gender);
         }
 
         try {
             String prompt = """
-You are an expert medical AI.
+You are an expert medical AI physician.
 
-Analyze the medical report carefully.
+Analyze the medical report carefully for patient %s (Age: %s, Gender: %s).
 
 IMPORTANT RULES:
-
 1. Return ONLY valid JSON.
-2. Do NOT use markdown.
-3. Do NOT wrap the response inside ```json or ```.
-4. Do NOT write explanations.
-5. Every field must exist.
+2. Do NOT use markdown fences or explanations outside JSON.
+3. Every field must exist.
+4. Summary should be 3-6 sentences in clear language.
 
-Return exactly this structure:
-
+Return exactly this JSON structure:
 {
   "summary":"",
-  "riskLevel":"",
+  "riskLevel":"Low/Moderate/High/Critical",
   "problems":[],
   "recommendations":[],
-  "specialist":"",
-  "emergencyStatus":"",
-  "emergency":""
+  "specialist":"Specialist recommendation",
+  "emergencyStatus":"Normal or Critical",
+  "emergency":"Yes or No",
+  "reportType":"Diagnostic Laboratory Report",
+  "hospital":"MediScan AI Diagnostic Services"
 }
 
 Medical Report:
-
-""" + reportText;
+%s
+""".formatted(
+                    name != null && !name.isBlank() ? name : "Patient",
+                    age != null && !age.isBlank() ? age : "Unknown",
+                    gender != null && !gender.isBlank() ? gender : "Unknown",
+                    reportText != null && !reportText.isBlank() ? reportText : "Diagnostic clinical report."
+            );
 
             JsonObject message = new JsonObject();
             message.addProperty("role", "user");
@@ -88,7 +111,7 @@ Medical Report:
                 if (!response.isSuccessful()) {
                     String errBody = response.body() != null ? response.body().string() : "";
                     System.err.println("[GroqService] Groq API returned error (HTTP " + response.code() + " : " + errBody + "). Engaging intelligent clinical fallback engine.");
-                    return fallbackAnalyze(reportText);
+                    return fallbackAnalyze(reportText, name, age, gender);
                 }
 
                 String result = response.body().string();
@@ -102,12 +125,7 @@ Medical Report:
                         .get("content")
                         .getAsString();
 
-                // Remove markdown if Groq returns it
-                content = content.trim();
-                content = content.replace("```json", "");
-                content = content.replace("```JSON", "");
-                content = content.replace("```", "");
-                content = content.trim();
+                content = cleanAndExtractJson(content);
 
                 // Validate JSON before returning
                 JsonObject parsed = new Gson().fromJson(content, JsonObject.class);
@@ -119,7 +137,7 @@ Medical Report:
             }
         } catch (Exception e) {
             System.err.println("[GroqService] Groq call failed (" + e.getMessage() + "). Engaging intelligent clinical fallback engine.");
-            return fallbackAnalyze(reportText);
+            return fallbackAnalyze(reportText, name, age, gender);
         }
     }
 
@@ -129,21 +147,28 @@ Medical Report:
      * a comprehensive patient-facing summary without crashing on external API 401/timeout failures.
      */
     public String fallbackAnalyze(String fullText) {
+        return fallbackAnalyze(fullText, null, null, null);
+    }
+
+    public String fallbackAnalyze(String fullText, String patientName, String age, String gender) {
         if (fullText == null) fullText = "";
 
-        // 1. Extract patient demographics if present
-        String patientName = "Patient";
-        String age = "";
-        String gender = "";
+        // 1. Extract patient demographics if not explicitly provided
+        if (patientName == null || patientName.isBlank() || "Patient".equalsIgnoreCase(patientName)) {
+            patientName = "Patient";
+            Matcher nameMatcher = Pattern.compile("(?i)\\bName:\\s*([^\\r\\n]+)").matcher(fullText);
+            if (nameMatcher.find()) patientName = nameMatcher.group(1).trim();
+        }
 
-        Matcher nameMatcher = Pattern.compile("(?i)\\bName:\\s*([^\\r\\n]+)").matcher(fullText);
-        if (nameMatcher.find()) patientName = nameMatcher.group(1).trim();
+        if (age == null || age.isBlank()) {
+            Matcher ageMatcher = Pattern.compile("(?i)\\bAge:\\s*([^\\r\\n]+)").matcher(fullText);
+            if (ageMatcher.find()) age = ageMatcher.group(1).trim();
+        }
 
-        Matcher ageMatcher = Pattern.compile("(?i)\\bAge:\\s*([^\\r\\n]+)").matcher(fullText);
-        if (ageMatcher.find()) age = ageMatcher.group(1).trim();
-
-        Matcher genderMatcher = Pattern.compile("(?i)\\bGender:\\s*([^\\r\\n]+)").matcher(fullText);
-        if (genderMatcher.find()) gender = genderMatcher.group(1).trim();
+        if (gender == null || gender.isBlank()) {
+            Matcher genderMatcher = Pattern.compile("(?i)\\bGender:\\s*([^\\r\\n]+)").matcher(fullText);
+            if (genderMatcher.find()) gender = genderMatcher.group(1).trim();
+        }
 
         // 2. Extract lab values using LabReportParser
         List<LabResult> labs = LabReportParser.extractLabValues(fullText);
@@ -525,7 +550,7 @@ Medical Report:
                     .get("content")
                     .getAsString();
 
-            content = content.replace("```json", "").replace("```JSON", "").replace("```", "").trim();
+            content = cleanAndExtractJson(content);
             return content;
         }
     }

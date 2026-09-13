@@ -24,6 +24,7 @@ public class DoctorService {
             .build();
 
     private final ObjectMapper mapper = new ObjectMapper();
+    private volatile long lastNominatimErrorTime = 0;
 
     private static final String[] ALL_SPECIALIZATIONS = {
             "General Physician", "Cardiologist", "Neurologist", "Orthopedic",
